@@ -1,0 +1,1457 @@
+openapi: "3.1.0"
+info:
+  title: "MyBlog API"
+  description: "MyBlog API"
+  version: "1.0.0"
+servers:
+  - url: "https://MyBlog"
+paths:
+  /album/{id}:
+    put:
+      summary: "PUT album/{id}"
+      operationId: "updateAlbum"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Album"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    delete:
+      summary: "DELETE album/{id}"
+      operationId: "deleteAlbum"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    get:
+      summary: "GET album/{id}"
+      operationId: "getAlbumDetails"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /album:
+    post:
+      summary: "POST album"
+      operationId: "createAlbum"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Album"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    get:
+      summary: "GET album"
+      operationId: "getAllAlbums"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /album/merge:
+    post:
+      summary: "POST album/merge"
+      operationId: "mergeAlbums"
+      parameters:
+        - name: "sourceId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "targetId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /collection/{id}:
+    put:
+      summary: "PUT collection/{id}"
+      operationId: "updateCollection"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Collection"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    delete:
+      summary: "DELETE collection/{id}"
+      operationId: "deleteCollection"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    get:
+      summary: "GET collection/{id}"
+      operationId: "getCollection"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /collection:
+    post:
+      summary: "POST collection"
+      operationId: "createCollection"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Collection"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    get:
+      summary: "GET collection"
+      operationId: "getAllCollections"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /music/{musicId}:
+    put:
+      summary: "PUT music/{musicId}"
+      operationId: "editMusic"
+      parameters:
+        - name: "musicId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Music"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    delete:
+      summary: "DELETE music/{musicId}"
+      operationId: "deleteMusic"
+      parameters:
+        - name: "musicId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /music/upload:
+    post:
+      summary: "POST music/upload"
+      operationId: "uploadMusic"
+      parameters:
+        - name: "file"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            format: "binary"
+        - name: "description"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /music/all:
+    get:
+      summary: "GET music/all"
+      operationId: "getAllMusic"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /music/stream/{musicId}:
+    get:
+      summary: "GET music/stream/{musicId}"
+      operationId: "streamMusic"
+      parameters:
+        - name: "musicId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Resource"
+  /permission/setPermission:
+    post:
+      summary: "POST permission/setPermission"
+      operationId: "setPermission"
+      parameters:
+        - name: "targetId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "level"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "boolean"
+  /permission/updateUserRole:
+    post:
+      summary: "POST permission/updateUserRole"
+      operationId: "updateUserRole"
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "newRole"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "boolean"
+  /permission/hasPermission:
+    get:
+      summary: "GET permission/hasPermission"
+      operationId: "hasPermission"
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "targetId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "boolean"
+  /permission/getPermissionLevel:
+    get:
+      summary: "GET permission/getPermissionLevel"
+      operationId: "getPermissionLevel"
+      parameters:
+        - name: "targetId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /permission/getUserRole:
+    get:
+      summary: "GET permission/getUserRole"
+      operationId: "getUserRole"
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /lock/force-unlock/{essayId}:
+    post:
+      summary: "POST lock/force-unlock/{essayId}"
+      operationId: "forceUnlock"
+      parameters:
+        - name: "essayId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "adminId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /lock/check/{essayId}:
+    get:
+      summary: "GET lock/check/{essayId}"
+      operationId: "checkLock"
+      parameters:
+        - name: "essayId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /lock/all-locked:
+    get:
+      summary: "GET lock/all-locked"
+      operationId: "getAllLockedEssays"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/{imageId}/update:
+    put:
+      summary: "PUT image/{imageId}/update"
+      operationId: "updateImage"
+      parameters:
+        - name: "imageId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Image"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/upload:
+    post:
+      summary: "POST image/upload"
+      operationId: "uploadImage"
+      parameters:
+        - name: "file"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            format: "binary"
+        - name: "essayId"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "albumId"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "description"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/{imageId}/addToAlbum/{albumId}:
+    post:
+      summary: "POST image/{imageId}/addToAlbum/{albumId}"
+      operationId: "addImageToAlbum"
+      parameters:
+        - name: "imageId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "albumId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/{imageId}/removeFromAlbum/{albumId}:
+    post:
+      summary: "POST image/{imageId}/removeFromAlbum/{albumId}"
+      operationId: "removeImageFromAlbum"
+      parameters:
+        - name: "imageId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "albumId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/{imageId}/del:
+    delete:
+      summary: "DELETE image/{imageId}/del"
+      operationId: "deleteImage"
+      parameters:
+        - name: "imageId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/path/{imageId}:
+    get:
+      summary: "GET image/path/{imageId}"
+      operationId: "getImagePath"
+      parameters:
+        - name: "imageId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/essay/{essayId}:
+    get:
+      summary: "GET image/essay/{essayId}"
+      operationId: "getImagesByEssay"
+      parameters:
+        - name: "essayId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/album/{albumId}:
+    get:
+      summary: "GET image/album/{albumId}"
+      operationId: "getImagesByAlbum"
+      parameters:
+        - name: "albumId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /image/uncategorized:
+    get:
+      summary: "GET image/uncategorized"
+      operationId: "getUncategorizedImages"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTagList/addTagsToEssay:
+    post:
+      summary: "POST essayTagList/addTagsToEssay"
+      operationId: "addTagsToEssay"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddTagsToEssayDTO"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTagList/removeTagFromEssay:
+    delete:
+      summary: "DELETE essayTagList/removeTagFromEssay"
+      operationId: "removeTagFromEssay"
+      parameters:
+        - name: "essayId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "essayTagId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTagList/getTagsByEssay:
+    get:
+      summary: "GET essayTagList/getTagsByEssay"
+      operationId: "getTagsByEssay"
+      parameters:
+        - name: "essayId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTagList/getEssaysByTag:
+    get:
+      summary: "GET essayTagList/getEssaysByTag"
+      operationId: "getEssaysByTag"
+      parameters:
+        - name: "essayTagId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTag/add:
+    post:
+      summary: "POST essayTag/add"
+      operationId: "addTag"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EssayTag"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essayTag/all:
+    get:
+      summary: "GET essayTag/all"
+      operationId: "getAllTags"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}:
+    put:
+      summary: "PUT essay/{id}"
+      operationId: "updateEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Essay"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}/context:
+    put:
+      summary: "PUT essay/{id}/context"
+      operationId: "updateEssayContext"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Essay"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay:
+    post:
+      summary: "POST essay"
+      operationId: "createEssay"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Essay"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+    get:
+      summary: "GET essay"
+      operationId: "getAllEssays"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}/edit:
+    post:
+      summary: "POST essay/{id}/edit"
+      operationId: "startEditEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "userId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}/end-edit:
+    post:
+      summary: "POST essay/{id}/end-edit"
+      operationId: "endEditEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "userId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}/like:
+    post:
+      summary: "POST essay/{id}/like"
+      operationId: "likeEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/{id}/del:
+    delete:
+      summary: "DELETE essay/{id}/del"
+      operationId: "deleteEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/edit/{id}:
+    get:
+      summary: "GET essay/edit/{id}"
+      operationId: "getEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /essay/view/{id}:
+    get:
+      summary: "GET essay/view/{id}"
+      operationId: "getLatestEssay"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/{tipId}/update:
+    put:
+      summary: "PUT tip/{tipId}/update"
+      operationId: "updateTip"
+      parameters:
+        - name: "tipId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Tip"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/{tipId}/status:
+    put:
+      summary: "PUT tip/{tipId}/status"
+      operationId: "updateTipStatus"
+      parameters:
+        - name: "tipId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          required: true
+          schema:
+            type: "integer"
+            format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/add:
+    post:
+      summary: "POST tip/add"
+      operationId: "addTip"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Tip"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/{tipId}/del:
+    delete:
+      summary: "DELETE tip/{tipId}/del"
+      operationId: "deleteTip"
+      parameters:
+        - name: "tipId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/all:
+    get:
+      summary: "GET tip/all"
+      operationId: "getAllTips"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /tip/{tipId}/detail:
+    get:
+      summary: "GET tip/{tipId}/detail"
+      operationId: "getTipById"
+      parameters:
+        - name: "tipId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /note/{noteId}/update:
+    put:
+      summary: "PUT note/{noteId}/update"
+      operationId: "updateNote"
+      parameters:
+        - name: "noteId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Note"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /note/add:
+    post:
+      summary: "POST note/add"
+      operationId: "addNote"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Note"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /note/{noteId}/del:
+    delete:
+      summary: "DELETE note/{noteId}/del"
+      operationId: "deleteNote"
+      parameters:
+        - name: "noteId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "essayId"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /note/essay/{essayId}:
+    get:
+      summary: "GET note/essay/{essayId}"
+      operationId: "getNotesByEssay"
+      parameters:
+        - name: "essayId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/review/{userId}:
+    put:
+      summary: "PUT user/review/{userId}"
+      operationId: "reviewUser"
+      parameters:
+        - name: "userId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          required: true
+          schema:
+            type: "integer"
+            format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/login:
+    post:
+      summary: "POST user/login"
+      operationId: "login"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDTO"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/register:
+    post:
+      summary: "POST user/register"
+      operationId: "register"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDTO"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/check:
+    get:
+      summary: "GET user/check"
+      operationId: "checkUser"
+      parameters:
+        - name: "email"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/pending:
+    get:
+      summary: "GET user/pending"
+      operationId: "getPendingUsers"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/guest:
+    get:
+      summary: "GET user/guest"
+      operationId: "guestLogin"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /user/all:
+    get:
+      summary: "GET user/all"
+      operationId: "getAllUsers"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /comment:
+    post:
+      summary: "POST comment"
+      operationId: "addComment"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Comment"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /comment/{commentId}/like:
+    post:
+      summary: "POST comment/{commentId}/like"
+      operationId: "likeComment"
+      parameters:
+        - name: "commentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /comment/{commentId}:
+    delete:
+      summary: "DELETE comment/{commentId}"
+      operationId: "deleteComment"
+      parameters:
+        - name: "commentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+  /comment/essay/{essayId}:
+    get:
+      summary: "GET comment/essay/{essayId}"
+      operationId: "getCommentsByEssayId"
+      parameters:
+        - name: "essayId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Result"
+components:
+  schemas:
+    Album:
+      type: "object"
+      properties:
+        albumId:
+          type: "string"
+        title:
+          type: "string"
+        description:
+          type: "string"
+        updatetime:
+          type: "string"
+          format: "date-time"
+        createtime:
+          type: "string"
+          format: "date-time"
+    Object:
+      type: "object"
+      properties: { }
+    Result:
+      type: "object"
+      properties:
+        success:
+          type: "boolean"
+        errorMsg:
+          type: "string"
+        data:
+          $ref: "#/components/schemas/Object"
+        total:
+          type: "integer"
+          format: "int64"
+    Collection:
+      type: "object"
+      properties:
+        collectionId:
+          type: "string"
+        collectionName:
+          type: "string"
+        collectionAbstract:
+          type: "string"
+    Music:
+      type: "object"
+      properties:
+        musicId:
+          type: "string"
+        fileName:
+          type: "string"
+        filePath:
+          type: "string"
+        description:
+          type: "string"
+    Resource:
+      type: "object"
+      properties: { }
+    Image:
+      type: "object"
+      properties:
+        imageId:
+          type: "string"
+        fileName:
+          type: "string"
+        filePath:
+          type: "string"
+        essayId:
+          type: "string"
+        albumId:
+          type: "string"
+        updateTime:
+          type: "string"
+          format: "date-time"
+        description:
+          type: "string"
+        previewPath:
+          type: "string"
+    AddTagsToEssayDTO:
+      type: "object"
+      properties:
+        essayId:
+          type: "string"
+        tagIds:
+          type: "array"
+          items:
+            type: "string"
+    EssayTag:
+      type: "object"
+      properties:
+        essayTagId:
+          type: "string"
+        essayTagName:
+          type: "string"
+    Essay:
+      type: "object"
+      properties:
+        essayId:
+          type: "string"
+        essayTitle:
+          type: "string"
+        essayAddTime:
+          type: "string"
+          format: "date-time"
+        essayLastChangeTime:
+          type: "string"
+          format: "date-time"
+        essayType:
+          type: "string"
+        essayContext:
+          type: "string"
+        essayLikeNum:
+          type: "integer"
+          format: "int32"
+        essayViewNum:
+          type: "integer"
+          format: "int32"
+        essayCollectionNum:
+          type: "integer"
+          format: "int32"
+        userId:
+          type: "string"
+        version:
+          type: "integer"
+          format: "int32"
+        status:
+          type: "integer"
+          format: "int32"
+        classId:
+          type: "string"
+    Tip:
+      type: "object"
+      properties:
+        tipId:
+          type: "string"
+        content:
+          type: "string"
+        time:
+          type: "string"
+          format: "date-time"
+        status:
+          type: "integer"
+          format: "int32"
+    Note:
+      type: "object"
+      properties:
+        noteId:
+          type: "string"
+        userId:
+          type: "string"
+        content:
+          type: "string"
+        position:
+          type: "integer"
+          format: "int32"
+        createTime:
+          type: "string"
+          format: "date-time"
+        essayId:
+          type: "string"
+    LoginDTO:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+        password:
+          type: "string"
+    RegisterDTO:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+        password:
+          type: "string"
+        userName:
+          type: "string"
+        role:
+          type: "string"
+    Comment:
+      type: "object"
+      properties:
+        commentId:
+          type: "string"
+        essayId:
+          type: "string"
+        commentTime:
+          type: "string"
+          format: "date-time"
+        userId:
+          type: "string"
+        commentLikeNum:
+          type: "integer"
+          format: "int32"
+        commentVisible:
+          type: "string"
+        commentFatherId:
+          type: "string"
+        content:
+          type: "string"
