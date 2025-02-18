@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { checkPermission, UserRole } from '@/utils/permission'
+import { UserRole } from '@/utils/permission'
 import type { Collection, EssayBrief } from '@/types/essay'
 import { useUserStore } from '@/stores/user'
-import { getCollections, getEssayBriefs, createCollection } from '@/api/essay'
-import { Plus } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { getCollections, getEssayBriefs, createCollection, updateCollection, deleteCollection } from '@/api/essay'
+import { setPermission, hasPermission } from '@/api/permission'
+import { Plus, Edit, Delete, Setting } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 
 const collections = ref<Collection[]>([])
 const currentEssays = ref<EssayBrief[]>([])
@@ -18,20 +20,57 @@ const newCollection = ref<Partial<Collection>>({
   collectionAbstract: ''
 })
 
+// 编辑合集相关
+const isEditing = ref(false)
+const editingCollection = ref<Partial<Collection> | null>(null)
+
+// 权限设置相关
+const isSettingPermission = ref(false)
+const selectedPermission = ref<UserRole>(UserRole.GUEST)
+
+// 权限选项
+const permissionOptions = [
+  { label: '管理员', value: UserRole.ADMIN },
+  { label: '密友', value: UserRole.CLOSE_FRIEND },
+  { label: '好友', value: UserRole.FRIEND },
+  { label: '访客', value: UserRole.GUEST }
+]
+
+const router = useRouter()
+
 // 获取合集列表
 const fetchCollections = async () => {
   try {
     const result = await getCollections()
     if (result.success && result.data) {
-      collections.value = result.data.filter(collection =>
-        checkPermission(
-          collection.requiredRole as UserRole || UserRole.GUEST,
-          userStore.userInfo?.userRole
-        )
-      )
+      const allCollections = result.data
+      const filteredCollections: Collection[] = []
+
+      for (const collection of allCollections) {
+        // 管理员可以看到所有合集
+        if (userStore.isAdmin) {
+          filteredCollections.push(collection)
+          continue
+        }
+
+        // 确保 userInfo 不为 null
+        const userId = userStore.userInfo?.userId
+        if (!userId) {
+          ElMessage.error('用户信息未加载')
+          return
+        }
+
+        const permissionResult = await hasPermission(userId, collection.collectionId)
+        if (permissionResult.success && permissionResult.data) {
+          filteredCollections.push(collection)
+        }
+      }
+
+      collections.value = filteredCollections
     }
   } catch (error) {
     console.error('获取合集列表失败:', error)
+    ElMessage.error('获取合集列表失败')
   }
 }
 
@@ -93,6 +132,93 @@ const cancelCreate = () => {
   }
 }
 
+// 开始编辑合集
+const startEdit = () => {
+  if (currentCollection.value) {
+    editingCollection.value = { ...currentCollection.value }
+    isEditing.value = true
+  }
+}
+
+// 保存合集编辑
+const saveEdit = async () => {
+  if (!editingCollection.value || !currentCollection.value) return
+
+  try {
+    const result = await updateCollection(
+      currentCollection.value.collectionId,
+      editingCollection.value
+    )
+
+    if (result.success) {
+      ElMessage.success('更新成功')
+      isEditing.value = false
+      await fetchCollections()
+    }
+  } catch (error) {
+    ElMessage.error('更新失败')
+  }
+}
+
+// 删除合集
+const confirmDelete = async () => {
+  if (!currentCollection.value) return
+
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除这个合集吗？此操作不可恢复。',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    const result = await deleteCollection(currentCollection.value.collectionId)
+    if (result.success) {
+      ElMessage.success('删除成功')
+      currentCollection.value = undefined
+      selectedCollectionId.value = undefined
+      await fetchCollections()
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 保存权限设置
+const savePermission = async () => {
+  if (!currentCollection.value) return
+
+  try {
+    const result = await setPermission(
+      currentCollection.value.collectionId,
+      selectedPermission.value
+    )
+
+    if (result.success) {
+      ElMessage.success('权限设置成功')
+      isSettingPermission.value = false
+    }
+  } catch (error) {
+    ElMessage.error('权限设置失败')
+  }
+}
+
+// 处理文章点击
+const handleEssayClick = (essay: EssayBrief) => {
+  // 将当前文章列表存储到 sessionStorage
+  sessionStorage.setItem('currentEssayList', JSON.stringify(currentEssays.value))
+  // 导航到文章详情页
+  router.push({
+    name: 'essay',
+    params: { id: essay.essayId }
+  })
+}
+
 onMounted(() => {
   fetchCollections()
   // 默认加载未归类文章
@@ -140,6 +266,24 @@ onMounted(() => {
         {{ currentCollection?.collectionAbstract || '这里是一些未归类的随想和小杂文' }}
       </div>
 
+      <!-- 管理按钮组 -->
+      <div v-if="userStore.isAdmin && currentCollection" class="admin-actions">
+        <el-button-group>
+          <el-button type="primary" @click="startEdit">
+            <el-icon><Edit /></el-icon>
+            编辑
+          </el-button>
+          <el-button type="danger" @click="confirmDelete">
+            <el-icon><Delete /></el-icon>
+            删除
+          </el-button>
+          <el-button type="warning" @click="isSettingPermission = true">
+            <el-icon><Setting /></el-icon>
+            权限
+          </el-button>
+        </el-button-group>
+      </div>
+
       <div v-if="currentEssays.length === 0" class="empty-state">
         <div class="empty-message">
           <p class="primary-text">文字是思维的痕迹，书写是心灵的沉淀</p>
@@ -151,6 +295,7 @@ onMounted(() => {
           v-for="essay in currentEssays"
           :key="essay.essayId"
           class="essay-card"
+          @click="handleEssayClick(essay)"
         >
           {{ essay.essayTitle }}
         </div>
@@ -186,6 +331,58 @@ onMounted(() => {
           <el-button type="primary" @click="createNewCollection">
             创建
           </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑合集弹窗 -->
+    <el-dialog
+      v-model="isEditing"
+      title="编辑合集"
+      width="30%"
+    >
+      <el-form v-if="editingCollection" :model="editingCollection">
+        <el-form-item label="合集名称" required>
+          <el-input v-model="editingCollection.collectionName" />
+        </el-form-item>
+        <el-form-item label="内容摘要">
+          <el-input
+            v-model="editingCollection.collectionAbstract"
+            type="textarea"
+            :rows="4"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="isEditing = false">取消</el-button>
+          <el-button type="primary" @click="saveEdit">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 权限设置弹窗 -->
+    <el-dialog
+      v-model="isSettingPermission"
+      title="设置权限"
+      width="30%"
+    >
+      <el-form>
+        <el-form-item label="访问权限">
+          <el-select v-model="selectedPermission">
+            <el-option
+              v-for="option in permissionOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="isSettingPermission = false">取消</el-button>
+          <el-button type="primary" @click="savePermission">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -330,6 +527,17 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.admin-actions {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+}
+
+.admin-actions .el-button-group {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .dialog-footer {

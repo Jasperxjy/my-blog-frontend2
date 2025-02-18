@@ -66,12 +66,18 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/articles',
     name: 'articles',
-    component: ArticlesView,
+    component: () => import('@/views/ArticlesView.vue'),
     meta: {
       requiresAuth: true,
       requiresRole: 'GUEST'
     }
   },
+  {
+    path: '/essay/:id',
+    name: 'essay',
+    component: () => import('@/views/EssayView.vue'),
+    props: true
+  }
 ]
 
 // 创建路由实例
