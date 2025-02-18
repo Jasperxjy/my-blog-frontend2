@@ -1,4 +1,5 @@
 import './assets/main.css'
+import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
 import { createApp } from 'vue'
@@ -13,7 +14,8 @@ const app = createApp(App)
 app.use(createPinia())
 //使用路由
 app.use(router)
-
+//使用element-plus
+app.use(ElementPlus)
 //挂载app实例
 app.mount('#app')
 //加载用户信息
@@ -32,5 +34,5 @@ try {
   }
 } catch (error) {
   console.error('Failed to parse user info:', error)
-  
+
 }

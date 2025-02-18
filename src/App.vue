@@ -1,15 +1,52 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import MusicPlayer from '@/components/MusicPlayer.vue'
+import { usePlayerStore } from '@/stores/player'
+
+const playerStore = usePlayerStore()
 </script>
 
 <template>
-  <RouterView />
+  <div class="app-container">
+    <RouterView />
+    <MusicPlayer
+      v-model:visible="playerStore.isVisible"
+      :current-music="playerStore.currentMusic"
+      v-model:playing="playerStore.isPlaying"
+    />
+  </div>
 </template>
 
-<style scoped>
+<style>
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* App容器样式 */
+.app-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* RouterView不需要特殊的flex样式，移除可能导致问题的样式 */
+.app-container > * {
+  width: 100%;
+}
+
 header {
   line-height: 1.5;
-  max-height: 100vh;
+  max-height: 150vh;
 }
 
 .logo {
@@ -67,5 +104,10 @@ nav a:first-of-type {
     padding: 1rem 0;
     margin-top: 1rem;
   }
+}
+
+#app {
+  min-height: 100vh;
+  background-color: #f5f7fa;
 }
 </style>

@@ -15,12 +15,21 @@ import TipsList from '@/components/TipsList.vue'
 <style scoped>
 .home {
   min-height: 100vh;
+  width: 100%;
   background-color: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .main-content {
-  max-width: 800px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 4rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>

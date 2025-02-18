@@ -18,17 +18,19 @@ const props = defineProps<{
 const userStore = useUserStore()
 
 const hasPermission = computed(() => {
-  // 如果需要登录但未登录，则无权限
-  if (props.requireAuth && !userStore.isLoggedIn) {
+  // If authentication is required but the user is not logged in, no permission
+  if (props.requireAuth && !userStore.token) {
     return false
   }
 
-  // 如果没有指定角色要求，则有权限
+  // If no role requirements are specified, the user has permission
   if (!props.roles || props.roles.length === 0) {
     return true
   }
 
-  // 检查用户角色是否在允许的角色列表中
-  return props.roles.includes(userStore.userRole)
+  // Check if the user's role is in the allowed role list
+  const userInfo = userStore.userInfo;
+  const userRole = userInfo? userInfo.userRole : undefined;
+  return userRole? props.roles.includes(userRole) : false;
 })
 </script>

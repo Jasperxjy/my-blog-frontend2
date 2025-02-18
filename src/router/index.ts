@@ -3,6 +3,10 @@ import type { RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import EssayEdit from '../views/EssayEdit.vue'
 import LoginView from '../views/LoginView.vue'
+import UsersView from '@/views/UsersView.vue'
+import AlbumsView from '@/views/AlbumsView.vue'
+import MusicView from '@/views/MusicView.vue'
+import ArticlesView from '@/views/ArticlesView.vue'
 import { useUserStore } from '@/stores/user'
 // 路由配置数组
 const routes: RouteRecordRaw[] = [
@@ -27,6 +31,46 @@ const routes: RouteRecordRaw[] = [
     name: 'login',
     component: LoginView,
     meta: { requiresAuth: false },
+  },
+  {
+    path: '/users',
+    name: 'users',
+    component: UsersView,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/albums',
+    name: 'albums',
+    component: AlbumsView,
+    meta: {
+      requiresAuth: true,
+      // 默认需要 GUEST 权限即可访问相册列表
+      // 具体相册的权限会在组件内部判断
+      requiresRole: 'GUEST'
+    }
+  },
+  {
+    path: '/music',
+    name: 'music',
+    component: MusicView,
+    meta: {
+      requiresAuth: true,
+      // 默认需要 GUEST 权限即可访问音乐列表
+      // 具体音乐的权限会在组件内部判断
+      requiresRole: 'GUEST'
+    }
+  },
+  {
+    path: '/articles',
+    name: 'articles',
+    component: ArticlesView,
+    meta: {
+      requiresAuth: true,
+      requiresRole: 'GUEST'
+    }
   },
 ]
 

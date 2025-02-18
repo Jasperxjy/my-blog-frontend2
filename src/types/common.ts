@@ -4,3 +4,10 @@ export interface Result<T = unknown> {
   data?: T
   total?: number
 }
+
+export interface Tip {
+  tipId: string
+  content: string
+  time: string
+  status: number
+}

@@ -2,12 +2,18 @@
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useNotification } from '@/composables/notification'
+import { checkPermission, UserRole } from '@/utils/permission'
 import * as authApi from '@/api/auth'
+import { computed } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { showSuccess, showError } = useNotification()
 const username = userStore.userInfo?.userName || '游客'
+
+const isAdmin = computed(() =>
+  checkPermission(UserRole.ADMIN, userStore.userInfo?.userRole)
+)
 
 const handleLogout = async () => {
   try {
@@ -36,9 +42,10 @@ const handleLogout = async () => {
 <template>
   <nav class="nav-bar">
     <div class="left-menu">
-      <router-link to="/essays">文章</router-link>
+      <router-link to="/articles">文章</router-link>
       <router-link to="/albums">相册</router-link>
       <router-link to="/music">音乐</router-link>
+      <router-link v-if="isAdmin" to="/users">用户管理</router-link>
     </div>
     <div class="right-menu">
       <span class="username">{{ username }}</span>

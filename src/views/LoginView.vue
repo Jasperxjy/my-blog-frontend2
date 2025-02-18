@@ -15,7 +15,13 @@
       <form v-if="isLogin" @submit.prevent="handleLogin" class="auth-form">
         <div class="form-item">
           <input v-model="loginForm.email" type="text" placeholder="请输入账号">
-          <span v-if="username" class="username-hint">{{ username }}</span>
+          <span v-if="userInfo" class="user-status">
+            <span class="user-name">{{ userInfo.userName }}</span>
+            {{ getUserStatusText(userInfo.status ?? -1) }}
+          </span>
+          <span v-else-if="loginForm.email" class="user-status not-exist">
+            用户不存在
+          </span>
         </div>
         <div class="form-item">
           <input v-model="loginForm.password" type="password" placeholder="请输入密码">
@@ -29,7 +35,14 @@
           <input v-model="registerForm.userName" type="text" placeholder="请输入用户名">
         </div>
         <div class="form-item">
-          <input v-model="registerForm.email" type="text" placeholder="请输入账号">
+          <input v-model="registerForm.email" type="text" placeholder="请输入邮箱账号">
+          <span v-if="userInfo" class="user-status">
+            <span class="user-name">{{ userInfo.userName }}</span>
+            {{ getUserStatusText(userInfo.status ?? -1) }}
+          </span>
+          <span v-else-if="registerForm.email" class="user-status not-exist">
+            用户不存在
+          </span>
         </div>
         <div class="form-item">
           <input v-model="registerForm.password" type="password" placeholder="请输入密码">
@@ -117,6 +130,24 @@ function debounce<T extends (email: string) => Promise<void>>(
 }
 
 /**
+ * 获取用户状态文本
+ */
+const getUserStatusText = (status: number): string => {
+  switch (status) {
+    case 0:
+      return '用户审核中'
+    case 1:
+      return '用户状态正常'
+    case 2:
+      return '用户已注销'
+    case 3:
+      return '用户已删除'
+    default:
+      return '未知状态'
+  }
+}
+
+/**
  * 防抖处理的用户检查函数
  */
 const debouncedCheckUser = debounce(async (email: string) => {
@@ -126,15 +157,23 @@ const debouncedCheckUser = debounce(async (email: string) => {
       if (result.success) {
         userInfo.value = result.data as UserInfoDTO
         username.value = userInfo.value.userName || ''
+
+        // 如果是注册页面且用户已存在，显示提示
+        if (!isLogin.value && userInfo.value.status !== undefined) {
+          showError('该邮箱已被注册')
+        }
       } else {
-        username.value = '未找到用户'
+        username.value = ''
+        userInfo.value = null
       }
-    } catch (error) {
-      username.value = '查询失败'
+    } catch {
+      username.value = ''
+      userInfo.value = null
       showError('用户查询失败，请稍后重试')
     }
   } else {
     username.value = ''
+    userInfo.value = null
   }
 }, 500)
 
@@ -195,7 +234,7 @@ const handleLogin = async () => {
     } else {
       showError(result.errorMsg || '登录失败')
     }
-  } catch (error) {
+  } catch {
     showError('网络错误，请稍后重试')
   } finally {
     loading.value = false
@@ -211,6 +250,12 @@ const handleRegister = async () => {
     return
   }
 
+  // 检查用户是否已存在
+  if (userInfo.value && userInfo.value.status !== undefined) {
+    showError('该邮箱已被注册')
+    return
+  }
+
   try {
     loading.value = true
     errorMsg.value = ''
@@ -218,14 +263,19 @@ const handleRegister = async () => {
     if (result.success) {
       isLogin.value = true
       loginForm.value.email = registerForm.value.email
-      showSuccess('注册成功，请登录')
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      showError(error.message)
+      showSuccess('注册成功，请等待管理员审核')
+      // 清空注册表单
+      registerForm.value = {
+        email: '',
+        password: '',
+        userName: '',
+        role: 'GUEST'
+      }
     } else {
-      showError('注册失败，请稍后重试')
+      showError(result.errorMsg || '注册失败')
     }
+  } catch {
+    showError('注册失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -244,18 +294,14 @@ const handleGuestLogin = async () => {
       userStore.setUserInfo({
         userName: '游客',
         userRole: 'GUEST',
-        userId: '',
+        userId: '1279ab5352f882f16ddc0adbd2e06adf',
         email: '',
         status: 1
       })
       router.push('/home')
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      showError(error.message)
-    } else {
-      showError('游客登录失败，请稍后重试')
-    }
+  } catch {
+    showError('游客登录失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -265,32 +311,41 @@ const handleGuestLogin = async () => {
 <style scoped>
 .login-page {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .welcome-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
   color: #2c3e50;
+  width: 100%;
+  max-width: 800px;
 }
 
 .welcome-section h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
+  font-size: 3.5em;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.welcome-section p {
+  font-size: 1.5em;
+  color: #34495e;
 }
 
 .auth-container {
   background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 50px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 520px;
 }
 
 .auth-tabs {
@@ -301,12 +356,13 @@ const handleGuestLogin = async () => {
 
 .auth-tabs button {
   flex: 1;
-  padding: 10px;
+  padding: 12px 20px;
   border: none;
   background: none;
-  font-size: 16px;
+  font-size: 1.1rem;
   cursor: pointer;
   color: #666;
+  transition: all 0.3s ease;
 }
 
 .auth-tabs button.active {
@@ -327,10 +383,8 @@ const handleGuestLogin = async () => {
 .form-item input,
 .form-item select {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 16px;
+  font-size: 1.1rem;
 }
 
 .username-hint {
@@ -342,32 +396,22 @@ const handleGuestLogin = async () => {
 }
 
 button {
-  padding: 12px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #2980b9;
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
 }
 
 .guest-login {
-  margin-top: 20px;
+  margin-top: 40px;
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
 }
 
 .guest-login button {
-  background: transparent;
-  border: 1px solid #3498db;
-  color: #3498db;
-}
-
-.guest-login button:hover {
-  background: rgba(52, 152, 219, 0.1);
+  width: auto;
+  min-width: 200px;
+  padding: 14px 30px;
 }
 
 .loading-overlay {
@@ -382,5 +426,27 @@ button:hover {
   justify-content: center;
   font-size: 16px;
   color: #3498db;
+}
+
+.user-status {
+  position: absolute;
+  top: -20px;
+  right: 0;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.user-status.not-exist {
+  background-color: #fff3f3;
+  color: #ff4d4f;
+}
+
+.user-name {
+  color: #1890ff;
+  margin-right: 8px;
+  font-weight: 500;
 }
 </style>
