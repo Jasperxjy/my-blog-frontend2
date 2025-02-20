@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Editor from '../components/Editor.vue'
+import Editor from '../components/ArticleEditor.vue'
 
 const content = ref('# 开始编写你的文章')
 </script>

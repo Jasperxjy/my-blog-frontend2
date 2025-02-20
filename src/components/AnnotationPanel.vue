@@ -1,134 +1,195 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onUnmounted ,computed} from 'vue'
 import type { Note } from '@/types/essay'
 
 const props = defineProps<{
   notes: Note[]
+  selectedAnnotation: {
+    id: string
+    pos: DOMRect | null
+  }
+  userRole?: string
 }>()
 
-interface AnnotationPosition {
-  noteId: string
-  markerRect: DOMRect | null
-  content: string
-  createTime: string
+const emit = defineEmits(['close'])
+const panelRef = ref<HTMLDivElement | null>(null)
+const connections = ref<SVGElement[]>([])
+
+// 清除所有连接线
+const clearConnections = () => {
+  connections.value.forEach(svg => svg.remove())
+  connections.value = []
 }
 
-const annotationPositions = ref<AnnotationPosition[]>([])
-
-const scrollY = computed(() => window.scrollY)
-
-// 更新批注位置信息
-const updatePositions = () => {
-  annotationPositions.value = props.notes.map(note => {
-    const markerElement = document.querySelector(`[data-annotation-id="${note.noteId}"]`);
-    const markerRect = markerElement ? markerElement.getBoundingClientRect() : null;
-    return {
-      noteId: note.noteId,
-      markerRect,
-      content: note.content,
-      createTime: note.createTime
-    };
-  });
-}
-
-// 使用 ResizeObserver 监听容器大小变化
-let resizeObserver: ResizeObserver
-onMounted(() => {
-  resizeObserver = new ResizeObserver(updatePositions)
-  const container = document.querySelector('.markdown-viewer')
-  if (container) {
-    resizeObserver.observe(container)
-  }
-
-  // 监听滚动事件
-  window.addEventListener('scroll', updatePositions, { passive: true })
-  // 初始更新位置
-  updatePositions()
+// 过滤当前显示的批注
+const currentNote = computed(() => {
+  return props.notes.find(note => note.noteId === props.selectedAnnotation.id)
 })
 
+// 关闭批注卡片
+const handleClose = () => {
+  emit('close')
+}
+
+// 绘制连接线
+const drawConnection = (start: DOMRect, end: DOMRect) => {
+  clearConnections()
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.style.position = 'fixed'
+  svg.style.top = '0'
+  svg.style.left = '0'
+  svg.style.width = '100%'
+  svg.style.height = '100%'
+  svg.style.pointerEvents = 'none'
+  svg.style.zIndex = '1000'
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  const startX = start.right
+  const startY = start.top + start.height / 2
+  const endX = end.left
+  const endY = end.top + end.height / 2
+
+  // 贝塞尔曲线控制点
+  const controlX = (endX - startX) * 0.5 + startX
+
+  path.setAttribute(
+    'd',
+    `M ${startX},${startY}
+     C ${controlX},${startY}
+       ${controlX},${endY}
+       ${endX},${endY}`
+  )
+
+  path.setAttribute('stroke', '#FFB800')
+  path.setAttribute('stroke-width', '2')
+  path.setAttribute('fill', 'none')
+
+  svg.appendChild(path)
+  document.body.appendChild(svg)
+  connections.value.push(svg)
+}
+
+// 监听选中的批注变化
+watch(
+  () => props.selectedAnnotation,
+  (newVal) => {
+    if (newVal.id && newVal.pos && panelRef.value) {
+      const noteCard = panelRef.value.querySelector(`[data-note-id="${newVal.id}"]`)
+      if (noteCard) {
+        const cardRect = noteCard.getBoundingClientRect()
+        drawConnection(newVal.pos, cardRect)
+      }
+    } else {
+      clearConnections()
+    }
+  },
+  { deep: true }
+)
+
 onUnmounted(() => {
-  resizeObserver?.disconnect()
-  window.removeEventListener('scroll', updatePositions)
+  clearConnections()
 })
 </script>
 
 <template>
-  <div class="annotation-panel">
-    <div
-      v-for="pos in annotationPositions"
-      :key="pos.noteId"
-      v-show="pos.markerRect"
-      class="annotation-item"
-      :style="{
-        top: pos.markerRect ? `${pos.markerRect.top + scrollY}px` : '0'
-      }"
-    >
-      <div class="annotation-content">
-        <div class="annotation-text">{{ pos.content }}</div>
-        <div class="annotation-time">{{ pos.createTime }}</div>
+ <div ref="panelRef" class="annotation-panel">
+    <div v-if="currentNote" class="note-card">
+      <div class="note-header">
+        <div class="user-info">用户：{{ currentNote.userId }}</div>
+        <button class="close-btn" @click="handleClose">×</button>
       </div>
-      <svg class="connector" :style="{ height: '2px' }">
-        <line
-          :x1="0"
-          :y1="1"
-          :x2="40"
-          :y2="1"
-          stroke="#ddd"
-          stroke-width="2"
-        />
-      </svg>
+      <div class="note-content">{{ currentNote.content }}</div>
+      <div class="note-footer">
+        <div class="note-time">{{ new Date(currentNote.createTime).toLocaleString() }}</div>
+        <button
+          v-if="userRole && ['CLOSE_FRIEND', 'ADMIN'].includes(userRole)"
+          class="edit-btn"
+        >
+          编辑
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .annotation-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 300px;
-  height: 100vh;
-  background: #f9f9f9;
-  border-left: 1px solid #eee;
-  padding: 20px;
-  overflow-y: auto;
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
 }
 
-.annotation-item {
-  position: absolute;
-  left: 20px;
-  right: 20px;
+.annotation-panel::v-deep(.note-card) {
+  transition: opacity 0.3s ease;
+}
+
+.annotation-panel:has(.note-card) {
+  transform: translateX(0);
+}
+.note-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  transform: translateY(-50%);
+  margin-bottom: 1rem;
 }
 
-.annotation-content {
+.note-card {
+  position: relative;
+  padding: 1rem;
+  margin: 1rem;
   background: white;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 12px;
-  margin-left: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-.annotation-text {
-  font-size: 14px;
-  line-height: 1.6;
+.user-info {
+  font-weight: 500;
   color: #333;
-  margin-bottom: 8px;
 }
 
-.annotation-time {
-  font-size: 12px;
+.note-card.active {
+  background: #fff;
+  border-color: #FFB800;
+  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.1);
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
   color: #999;
+  padding: 0 0.5rem;
 }
 
-.connector {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 40px;
+.close-btn:hover {
+  color: #666;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.edit-btn {
+  background: #409eff;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #66b1ff;
+}
+
+.note-content {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.note-time {
+  font-size: 0.85rem;
+  color: #999;
 }
 </style>

@@ -3,9 +3,13 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import MarkdownViewer from '@/components/MarkdownViewer.vue'
-import type { Essay, EssayTag, EssayBrief } from '@/types/essay'
-import { getEssayView, getEssayEdit, getEssayTags } from '@/api/essay'
+import type { Essay, EssayTag, EssayBrief, Note } from '@/types/essay'
+import { getEssayView, getEssayEdit, getEssayTags, getEssayNotes } from '@/api/essay'
+import CommentSection from '@/components/CommentSection.vue'
+// 替换原有导入
+import ArticleEditor from '@/components/ArticleEditor.vue'
+import AnnotationPanel from '@/components/AnnotationPanel.vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -13,9 +17,31 @@ const userStore = useUserStore()
 
 const currentEssay = ref<Essay | null>(null)
 const essayTags = ref<EssayTag[]>([])
+const essayNotes = ref<Note[]>([])
 const essayList = ref<EssayBrief[]>([])
 const loading = ref(true)
 
+const statusConfig: Record<number, { label: string; type: string }> = {
+  0: { label: '正常', type: 'success' },
+  1: { label: '编辑中', type: 'warning' },
+  2: { label: '已删除', type: 'danger' }
+}
+// 新增选中的批注状态管理
+const selectedAnnotation = ref<{ id: string; pos: DOMRect | null }>({
+  id: '',
+  pos: null
+})
+// 处理批注点击事件
+const handleAnnotationClick = (event: CustomEvent) => {
+  if (selectedAnnotation.value.id === event.detail.id) {
+    selectedAnnotation.value = { id: '', pos: null }
+  } else {
+    selectedAnnotation.value = {
+      id: event.detail.id,
+      pos: event.detail.pos
+    }
+  }
+}
 // 获取文章内容
 const fetchEssayContent = async (essayId: string) => {
   try {
@@ -29,6 +55,11 @@ const fetchEssayContent = async (essayId: string) => {
       const tagsResult = await getEssayTags(essayId)
       if (tagsResult.success && tagsResult.data) {
         essayTags.value = tagsResult.data
+      }
+      // 获取文章批注
+      const notesResult = await getEssayNotes(essayId)
+      if (notesResult.success && notesResult.data) {
+        essayNotes.value = notesResult.data
       }
     } else {
       ElMessage.error(result.errorMsg || '获取文章失败')
@@ -71,13 +102,8 @@ const handleEssayClick = (essayId: string) => {
   <div class="essay-view">
     <!-- 左侧文章列表 -->
     <div class="essay-list">
-      <div
-        v-for="essay in essayList"
-        :key="essay.essayId"
-        class="essay-item"
-        :class="{ active: essay.essayId === currentEssay?.essayId }"
-        @click="handleEssayClick(essay.essayId)"
-      >
+      <div v-for="essay in essayList" :key="essay.essayId" class="essay-item"
+        :class="{ active: essay.essayId === currentEssay?.essayId }" @click="handleEssayClick(essay.essayId)">
         {{ essay.essayTitle }}
       </div>
     </div>
@@ -90,25 +116,26 @@ const handleEssayClick = (essayId: string) => {
             <div class="essay-header">
               <h1>{{ currentEssay.essayTitle }}</h1>
               <div class="essay-meta">
-                <span class="essay-type">{{ currentEssay.essayType }}</span>
-                <span class="essay-time">
-                  创建于 {{ currentEssay.essayAddTime }}
-                  <template v-if="currentEssay.essayLastChangeTime">
-                    · 最后修改于 {{ currentEssay.essayLastChangeTime }}
-                  </template>
-                </span>
-              </div>
-              <div class="essay-info">
-                <div class="tags-list">
-                  <el-tag
-                    v-for="tag in essayTags"
-                    :key="tag.essayTagId"
-                    class="essay-tag"
-                    size="small"
-                  >
-                    {{ tag.essayTagName }}
-                  </el-tag>
+                <div class="essay-info">
+                  <!-- 第一行元数据 -->
+                  <div class="meta-row">
+                    <span class="time">创建时间: {{ currentEssay.essayAddTime }}</span>
+                    <span class="time">最后修改: {{ currentEssay.essayLastChangeTime }}</span>
+                    <span class="version">版本: v{{ currentEssay.version }}</span>
+                    <el-tag :type="statusConfig[currentEssay.status].type" size="small">
+                      {{ statusConfig[currentEssay.status].label }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 第二行标签 -->
+                  <div v-if="essayTags.length" class="tags-row">
+                    <el-tag v-for="tag in essayTags" :key="tag.essayTagId" class="essay-tag" type="info" size="small">
+                      {{ tag.essayTagName }}
+                    </el-tag>
+                  </div>
                 </div>
+
+                <!-- 统计数字保持不变 -->
                 <div class="stats-numbers">
                   <span>👁️ {{ currentEssay.essayViewNum }}</span>
                   <span>👍 {{ currentEssay.essayLikeNum }}</span>
@@ -117,11 +144,12 @@ const handleEssayClick = (essayId: string) => {
               </div>
             </div>
 
-            <MarkdownViewer
-              :content="currentEssay.essayContext"
-              :essay-id="currentEssay.essayId"
-              readonly
-            />
+            <article-editor :model-value="currentEssay.essayContext" :editable="false" :notes="essayNotes" />
+            <!-- 新增批注面板 -->
+            <annotation-panel :notes="essayNotes" :selected-annotation="selectedAnnotation"
+              :user-role="userStore.userInfo?.userRole" @close="selectedAnnotation = { id: '', pos: null }" />
+            <!-- 添加评论组件 -->
+            <comment-section v-if="currentEssay" :essay-id="currentEssay.essayId" />
           </div>
         </template>
       </el-skeleton>
@@ -135,7 +163,7 @@ const handleEssayClick = (essayId: string) => {
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 20px;
   padding: 20px;
-  max-width: 1500px;
+  max-width: 1800px;
   margin: 0 auto;
   min-height: 100vh;
 }
@@ -169,7 +197,7 @@ const handleEssayClick = (essayId: string) => {
 .essay-content {
   flex: 1;
   width: 100%;
-  padding-right: 340px;
+  padding-right: 320px;
 }
 
 .essay-header {
@@ -179,9 +207,14 @@ const handleEssayClick = (essayId: string) => {
 }
 
 .essay-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: 1rem 0;
   color: #909399;
   font-size: 0.9rem;
+  align-items: flex-start;
+
 }
 
 .essay-type {
@@ -194,8 +227,22 @@ const handleEssayClick = (essayId: string) => {
 .essay-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
+  align-items: flex-start;
+  color: #606266;
+  font-size: 0.9rem;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tags-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.version {
+  font-family: monospace;
 }
 
 .tags-list {
@@ -208,6 +255,16 @@ const handleEssayClick = (essayId: string) => {
 .essay-tag {
   margin: 0;
   font-size: 0.85rem;
+  background-color: #f0f4ff;
+  color: #3366ff;
+  border-radius: 4px;
+}
+
+.tags-row {
+
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .stats-numbers {
@@ -218,9 +275,27 @@ const handleEssayClick = (essayId: string) => {
   white-space: nowrap;
 }
 
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
 .essay-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+
+  /* 新增以下规则 */
+  :deep(.tiptap) {
+    padding: 1rem;
+    min-height: 300px;
+  }
+
+  :deep(.menu-bar) {
+    display: none;
+    /* 隐藏只读模式的菜单栏 */
+  }
 }
 </style>

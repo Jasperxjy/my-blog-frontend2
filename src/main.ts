@@ -1,7 +1,8 @@
 import './assets/main.css'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-
+import '@fontsource/fira-code/400.css'
+import '@fontsource/fira-code/500.css'
 import { createApp } from 'vue'
 //导入pinia
 import { createPinia } from 'pinia'

@@ -36,6 +36,29 @@ const permissionOptions = [
   { label: '访客', value: UserRole.GUEST }
 ]
 
+// 添加文章状态常量
+const ESSAY_STATUS = {
+  NORMAL: 0,
+  EDITING: 1,
+  DELETED: 2
+} as const
+
+// 文章状态标签配置
+const statusConfig: Record<number, { label: string; type: string }> = {
+  [ESSAY_STATUS.NORMAL]: {
+    label: '正常',
+    type: 'success'
+  },
+  [ESSAY_STATUS.EDITING]: {
+    label: '编辑中',
+    type: 'warning'
+  },
+  [ESSAY_STATUS.DELETED]: {
+    label: '已删除',
+    type: 'danger'
+  }
+} as const
+
 const router = useRouter()
 
 // 获取合集列表
@@ -79,7 +102,11 @@ const fetchEssays = async (collectionId?: string) => {
   try {
     const result = await getEssayBriefs(collectionId)
     if (result.success && result.data) {
-      currentEssays.value = result.data
+      // 根据用户角色过滤文章
+      const filteredEssays = userStore.isAdmin
+        ? result.data
+        : result.data.filter(essay => essay.status === ESSAY_STATUS.NORMAL)
+      currentEssays.value = filteredEssays
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
@@ -297,7 +324,16 @@ onMounted(() => {
           class="essay-card"
           @click="handleEssayClick(essay)"
         >
-          {{ essay.essayTitle }}
+          <div class="essay-title">{{ essay.essayTitle }}</div>
+          <!-- 管理员可见的状态标签 -->
+          <el-tag
+            v-if="userStore.isAdmin"
+            :type="statusConfig[essay.status].type"
+            size="small"
+            class="status-tag"
+          >
+            {{ statusConfig[essay.status].label }}
+          </el-tag>
         </div>
       </div>
     </div>
@@ -465,6 +501,8 @@ onMounted(() => {
 }
 
 .essay-card {
+  /* 修改卡片样式以适应状态标签 */
+  position: relative;
   width: 100%;
   max-width: 320px;
   height: 100px;
@@ -475,11 +513,26 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.essay-title {
   text-align: center;
   font-size: 1.1rem;
   color: #303133;
+  /* 防止标题过长 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.status-tag {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
 }
 
 .essay-card:hover {

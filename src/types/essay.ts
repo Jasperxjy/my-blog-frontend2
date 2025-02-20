@@ -8,6 +8,7 @@ export interface Collection {
 export interface EssayBrief {
   essayId: string
   essayTitle: string
+  status: number
   classId: string
 }
 export interface Essay {
