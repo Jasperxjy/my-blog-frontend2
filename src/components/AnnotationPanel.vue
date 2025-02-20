@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted ,computed} from 'vue'
+import { computed, ref } from 'vue'
 import type { Note } from '@/types/essay'
 
 const props = defineProps<{
@@ -9,187 +9,103 @@ const props = defineProps<{
     pos: DOMRect | null
   }
   userRole?: string
+  hasCursorPosition: boolean  // 新增属性
 }>()
 
-const emit = defineEmits(['close'])
-const panelRef = ref<HTMLDivElement | null>(null)
-const connections = ref<SVGElement[]>([])
-
-// 清除所有连接线
-const clearConnections = () => {
-  connections.value.forEach(svg => svg.remove())
-  connections.value = []
-}
-
+const emit = defineEmits(['close', 'create-note'])
+// 在script部分添加
+const showDialog = ref(false)
+const newNoteContent = ref('')
 // 过滤当前显示的批注
 const currentNote = computed(() => {
   return props.notes.find(note => note.noteId === props.selectedAnnotation.id)
 })
-
-// 关闭批注卡片
-const handleClose = () => {
-  emit('close')
-}
-
-// 绘制连接线
-const drawConnection = (start: DOMRect, end: DOMRect) => {
-  clearConnections()
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.style.position = 'fixed'
-  svg.style.top = '0'
-  svg.style.left = '0'
-  svg.style.width = '100%'
-  svg.style.height = '100%'
-  svg.style.pointerEvents = 'none'
-  svg.style.zIndex = '1000'
-
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-  const startX = start.right
-  const startY = start.top + start.height / 2
-  const endX = end.left
-  const endY = end.top + end.height / 2
-
-  // 贝塞尔曲线控制点
-  const controlX = (endX - startX) * 0.5 + startX
-
-  path.setAttribute(
-    'd',
-    `M ${startX},${startY}
-     C ${controlX},${startY}
-       ${controlX},${endY}
-       ${endX},${endY}`
-  )
-
-  path.setAttribute('stroke', '#FFB800')
-  path.setAttribute('stroke-width', '2')
-  path.setAttribute('fill', 'none')
-
-  svg.appendChild(path)
-  document.body.appendChild(svg)
-  connections.value.push(svg)
-}
-
-// 监听选中的批注变化
-watch(
-  () => props.selectedAnnotation,
-  (newVal) => {
-    if (newVal.id && newVal.pos && panelRef.value) {
-      const noteCard = panelRef.value.querySelector(`[data-note-id="${newVal.id}"]`)
-      if (noteCard) {
-        const cardRect = noteCard.getBoundingClientRect()
-        drawConnection(newVal.pos, cardRect)
-      }
-    } else {
-      clearConnections()
-    }
-  },
-  { deep: true }
-)
-
-onUnmounted(() => {
-  clearConnections()
-})
 </script>
 
 <template>
- <div ref="panelRef" class="annotation-panel">
+  <div class="annotation-panel" :style="{ top: selectedAnnotation.pos?.top + 'px' }">
     <div v-if="currentNote" class="note-card">
       <div class="note-header">
         <div class="user-info">用户：{{ currentNote.userId }}</div>
-        <button class="close-btn" @click="handleClose">×</button>
+        <button class="close-btn" @click="$emit('close')">×</button>
       </div>
       <div class="note-content">{{ currentNote.content }}</div>
       <div class="note-footer">
         <div class="note-time">{{ new Date(currentNote.createTime).toLocaleString() }}</div>
-        <button
-          v-if="userRole && ['CLOSE_FRIEND', 'ADMIN'].includes(userRole)"
-          class="edit-btn"
-        >
-          编辑
-        </button>
       </div>
     </div>
+
+    <div v-if="userRole && ['CLOSE_FRIEND', 'ADMIN'].includes(userRole)" class="new-note-footer">
+      <el-button type="primary" :disabled="!hasCursorPosition" @click="showDialog = true" v-if="hasCursorPosition">
+        新建批注
+      </el-button>
+      <el-tooltip v-else content="请先进入编辑模式选择批注位置" placement="top">
+        <el-button type="primary" disabled>
+          新建批注
+        </el-button>
+      </el-tooltip>
+    </div>
+
+    <el-dialog v-model="showDialog" title="新建批注">
+      <el-input
+        v-model="newNoteContent"
+        type="textarea"
+        :rows="4" 
+      />
+      <template #footer>
+        <el-button @click="showDialog = false">取消</el-button>
+        <el-button type="primary" @click="$emit('create-note', newNoteContent)">提交</el-button>
+      </template>
+    </el-dialog>
+
+
   </div>
 </template>
 
 <style scoped>
+.new-note-footer {
+  padding: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
 .annotation-panel {
-  transition: transform 0.3s ease;
-  transform: translateX(100%);
+  position: fixed;
+  right: 20px;
+  width: 300px;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  z-index: 1000;
+  transition: top 0.3s ease;
 }
 
-.annotation-panel::v-deep(.note-card) {
-  transition: opacity 0.3s ease;
+.note-card {
+  padding: 16px;
 }
 
-.annotation-panel:has(.note-card) {
-  transform: translateX(0);
-}
 .note-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 12px;
 }
 
-.note-card {
-  position: relative;
-  padding: 1rem;
-  margin: 1rem;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.user-info {
-  font-weight: 500;
-  color: #333;
-}
-
-.note-card.active {
-  background: #fff;
-  border-color: #FFB800;
-  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.1);
-}
 .close-btn {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 20px;
   cursor: pointer;
-  color: #999;
-  padding: 0 0.5rem;
-}
-
-.close-btn:hover {
-  color: #666;
-}
-
-.note-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.edit-btn {
-  background: #409eff;
-  color: white;
-  border: none;
-  padding: 0.3rem 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.edit-btn:hover {
-  background: #66b1ff;
+  padding: 0 8px;
 }
 
 .note-content {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #333;
 }
 
-.note-time {
-  font-size: 0.85rem;
-  color: #999;
+.note-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #666;
 }
 </style>

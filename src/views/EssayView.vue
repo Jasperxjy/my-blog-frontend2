@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import type { Essay, EssayTag, EssayBrief, Note } from '@/types/essay'
-import { getEssayView, getEssayEdit, getEssayTags, getEssayNotes } from '@/api/essay'
+import { getEssayView, getEssayEdit, getEssayTags, getEssayNotes,addNote, startEditEssay, updateEssayContext, endEditEssay } from '@/api/essay'
 import CommentSection from '@/components/CommentSection.vue'
 // 替换原有导入
 import ArticleEditor from '@/components/ArticleEditor.vue'
@@ -20,19 +20,23 @@ const essayTags = ref<EssayTag[]>([])
 const essayNotes = ref<Note[]>([])
 const essayList = ref<EssayBrief[]>([])
 const loading = ref(true)
-
+const isEditing = ref(false)
+const currentNoteContent = ref('')
+const articleEditorRef = ref<InstanceType<typeof ArticleEditor>>()
 const statusConfig: Record<number, { label: string; type: string }> = {
   0: { label: '正常', type: 'success' },
   1: { label: '编辑中', type: 'warning' },
   2: { label: '已删除', type: 'danger' }
 }
 // 新增选中的批注状态管理
-const selectedAnnotation = ref<{ id: string; pos: DOMRect | null }>({
+const selectedAnnotation = ref({
   id: '',
-  pos: null
+  pos: null as DOMRect | null
 })
 // 处理批注点击事件
-const handleAnnotationClick = (event: CustomEvent) => {
+const handleAnnotationClick = (event: { detail: { id: string; pos: DOMRect } }) => {
+  if (!event?.detail) return
+
   if (selectedAnnotation.value.id === event.detail.id) {
     selectedAnnotation.value = { id: '', pos: null }
   } else {
@@ -96,6 +100,75 @@ const handleEssayClick = (essayId: string) => {
   // 获取新文章内容
   fetchEssayContent(essayId)
 }
+// 添加处理方法
+const handleCreateNote = async (content: string) => {
+  try {
+    // 获取当前光标位置
+    const cursorPos = articleEditorRef.value?.currentCursorPos
+    if (!cursorPos) throw new Error('请先选择批注位置')
+    // 1. 创建批注记录
+    const noteResult = await addNote({
+      essayId: currentEssay.value!.essayId,
+      userId: userStore.userInfo!.userId!,
+      content,
+      position: cursorPos // 实际位置由后续插入操作决定
+    })
+
+    if (!noteResult.success) throw new Error(noteResult.errorMsg)
+
+    // 2. 进入编辑模式
+    const lockResult = await startEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    if (!lockResult.success) throw new Error('文章加锁失败')
+
+    // 3. 准备编辑器状态
+    isEditing.value = true
+    currentNoteContent.value = content
+    // 触发编辑器进入批注插入模式（需要通过ArticleEditor组件实现）
+    // 添加data存在性检查
+    if (!noteResult.success || !noteResult.data) {
+      throw new Error(noteResult.errorMsg || '创建批注失败')
+    }
+
+    // 后续代码保持不变，但添加可选链操作符
+    articleEditorRef.value?.insertAnnotation(noteResult.data.noteId, cursorPos)
+
+    // 更新文章内容（从编辑器获取最新内容）
+    const updatedEssay = {
+      ...currentEssay.value!,
+      essayContext: articleEditorRef.value?.modelValue || currentEssay.value!.essayContext
+    }
+
+    const updateResult = await updateEssayContext(currentEssay.value!.essayId, updatedEssay)
+    if (!updateResult.success) throw new Error(updateResult.errorMsg)
+
+    // 更新本地批注列表
+    essayNotes.value = (await getEssayNotes(currentEssay.value!.essayId)).data ?? []
+    // 解锁文章
+    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    // 添加成功后关闭弹窗
+    selectedAnnotation.value = { id: '', pos: null }
+
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '创建失败')
+    // 异常时解锁
+    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+  }finally {
+    isEditing.value = false
+    currentNoteContent.value = ''
+  }
+}
+
+// 添加关闭处理方法
+const handleCloseAnnotation = async () => {
+  if (isEditing.value) {
+    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    isEditing.value = false
+  }
+  selectedAnnotation.value.id = ''
+}
+
+
+
 </script>
 
 <template>
@@ -144,10 +217,18 @@ const handleEssayClick = (essayId: string) => {
               </div>
             </div>
 
-            <article-editor :model-value="currentEssay.essayContext" :editable="false" :notes="essayNotes" />
-            <!-- 新增批注面板 -->
-            <annotation-panel :notes="essayNotes" :selected-annotation="selectedAnnotation"
-              :user-role="userStore.userInfo?.userRole" @close="selectedAnnotation = { id: '', pos: null }" />
+            <article-editor
+            ref="articleEditorRef"
+            :model-value="currentEssay.essayContext"
+            :editable="['CLOSE_FRIEND', 'ADMIN'].includes(userStore.userInfo?.userRole??'GUEST')" @annotation-click="(detail) => {
+              selectedAnnotation.id = detail.id
+              selectedAnnotation.pos = detail.pos
+            }" />
+
+            <annotation-panel  :user-role="userStore.userInfo?.userRole" :notes="essayNotes" :selected-annotation="selectedAnnotation"
+              @close="handleCloseAnnotation" :has-cursor-position="!!articleEditorRef?.currentCursorPos"
+              @create-note="handleCreateNote"/>
+
             <!-- 添加评论组件 -->
             <comment-section v-if="currentEssay" :essay-id="currentEssay.essayId" />
           </div>
@@ -280,6 +361,23 @@ const handleEssayClick = (essayId: string) => {
   align-items: center;
   gap: 1.2rem;
   flex-wrap: wrap;
+}
+
+.annotation-container {
+  annotation {
+    display: inline-block;
+    background-color: #fff3d8;
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid #ffd799;
+    line-height: normal;
+    vertical-align: baseline;
+  }
+
+  /* 补充现代浏览器对自定义标签的支持 */
+  annotation:defined {
+    display: inline;
+  }
 }
 
 .essay-container {

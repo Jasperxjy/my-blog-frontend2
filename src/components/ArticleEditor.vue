@@ -91,7 +91,7 @@ import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
 import Document from '@tiptap/extension-document'
 import { createLowlight } from 'lowlight'
-import { watch, onBeforeUnmount ,ref,onMounted} from 'vue'
+import { watch, onBeforeUnmount, ref, onMounted } from 'vue'
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
@@ -99,7 +99,7 @@ import html from 'highlight.js/lib/languages/xml'
 import python from 'highlight.js/lib/languages/python'
 import java from 'highlight.js/lib/languages/java'
 import cpp from 'highlight.js/lib/languages/cpp'
-import {Annotation} from '@/extensions/annotation.ts'
+import { Annotation } from '@/extensions/annotation.ts'
 import type { Note } from '@/types/essay'
 import StarterKit from '@tiptap/starter-kit'
 
@@ -116,7 +116,7 @@ const selectedAnnotation = ref<{ id: string; pos: DOMRect | null }>({
   id: '',
   pos: null
 })
-
+const currentCursorPos = ref<number | null>(null)
 // 在编辑器配置中增强点击处理
 const handleAnnotationClick = (event: CustomEvent) => {
   emit('annotation-click', event.detail) // 将事件传递给父组件
@@ -134,9 +134,25 @@ lowlight.register('cpp', cpp)
 const editor = useEditor({
   content: props.modelValue,
   editable: props.editable ?? true, // 默认可编辑
+  onUpdate: ({ editor }) => {
+    currentCursorPos.value = editor.state.selection.$anchor.pos
+  },
   extensions: [
     StarterKit,
-    Annotation,
+    Annotation.configure({
+      HTMLAttributes: {
+        class: 'annotation-marker',
+      },
+    }).extend({
+      addAttributes() {
+        return {
+          id: {
+            default: null,
+          },
+        }
+      }
+    }
+    ),
     Document,
     Paragraph,
     OrderedList,
@@ -146,7 +162,7 @@ const editor = useEditor({
     ListItem,
     HorizontalRule,
     Blockquote,
-    CodeBlockLowlight.configure({ lowlight, languageClassPrefix: 'language-',defaultLanguage: 'plaintext' }),
+    CodeBlockLowlight.configure({ lowlight, languageClassPrefix: 'language-', defaultLanguage: 'plaintext' }),
     Image.configure({ allowBase64: true }),
     Table.configure({ resizable: true }),
     TableRow,
@@ -207,6 +223,8 @@ onMounted(() => {
   editor.value?.view.dom.addEventListener('annotation-click', handleAnnotationClick)
 })
 
+
+
 // 添加编辑器销毁逻辑
 onBeforeUnmount(() => {
   editor.value?.destroy()
@@ -222,6 +240,21 @@ watch(() => props.modelValue, (newValue) => {
 })
 
 
+defineExpose({
+  currentCursorPos,
+  insertAnnotation(noteId: string, pos: number) {
+    editor.value?.chain().focus().insertContentAt(pos, {
+      type: 'annotation',
+      attrs: {
+        id: noteId,
+        class: 'annotation-marker'
+      },
+      text: `批注`
+    }).run()
+  }
+})
+
+
 </script>
 
 <style lang="css">
@@ -233,12 +266,13 @@ watch(() => props.modelValue, (newValue) => {
     margin-top: 0;
   }
 
-  strong{
+  strong {
     font-weight: 600;
   }
 
   p {
-    font-size: 18px; /* 继承基础字号 */
+    font-size: 18px;
+    /* 继承基础字号 */
     line-height: 1.5;
     margin: 1em 0;
   }

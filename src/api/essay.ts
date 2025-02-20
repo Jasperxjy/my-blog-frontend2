@@ -113,3 +113,36 @@ export async function getEssayNotes(essayId: string): Promise<Result<Note[]>> {
     method: 'GET'
   })
 }
+
+/**
+ * 创建新的批注记录
+ * @param note - 批注对象（自动生成noteId和createTime字段）
+ * @returns Promise<Result<Note>> - 包含新创建批注的响应结果
+ */
+export async function addNote(note: Omit<Note, 'noteId' | 'createTime'>): Promise<Result<Note>> {
+  return request('/api/note/add', {
+    method: 'POST',
+    data: note
+  })
+}
+
+export async function startEditEssay(essayId: string, userId: string): Promise<Result> {
+  return request(`/api/essay/${essayId}/edit`, {
+    method: 'POST',
+    params: { userId }
+  })
+}
+
+export async function updateEssayContext(essayId: string, essay: Essay): Promise<Result> {
+  return request(`/api/essay/${essayId}/context`, {
+    method: 'PUT',
+    data: essay
+  })
+}
+
+export async function endEditEssay(essayId: string, userId: string): Promise<Result> {
+  return request(`/api/essay/${essayId}/end-edit`, {
+    method: 'POST',
+    params: { userId }
+  })
+}
