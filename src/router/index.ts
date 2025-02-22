@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import EssayEdit from '../views/EssayEdit.vue'
 import LoginView from '../views/LoginView.vue'
 import UsersView from '@/views/UsersView.vue'
 import AlbumsView from '@/views/AlbumsView.vue'
@@ -20,11 +19,6 @@ const routes: RouteRecordRaw[] = [
     name: 'home',
     component: HomeView,
     meta: { requiresAuth: true },
-  },
-  {
-    path: '/edit',
-    name: 'edit',
-    component: EssayEdit,
   },
   {
     path: '/login',
@@ -66,7 +60,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/articles',
     name: 'articles',
-    component: () => import('@/views/ArticlesView.vue'),
+    component: ArticlesView,
     meta: {
       requiresAuth: true,
       requiresRole: 'GUEST'
@@ -77,6 +71,15 @@ const routes: RouteRecordRaw[] = [
     name: 'essay',
     component: () => import('@/views/EssayView.vue'),
     props: true
+  },
+  {
+    path: '/essay/:id/edit',
+    name: 'essayEdit',
+    component: () => import('@/views/EssayEdit.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
   }
 ]
 
@@ -90,7 +93,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // 检查用户是否已登录
   const isAuthenticated = useUserStore().token
-
+  const currentEssay = JSON.parse(localStorage.getItem('currentEssay') || 'null');
+  const currentTags = JSON.parse(localStorage.getItem('currentTags') || 'null');
   // 需要登录但未登录，跳转到登录页
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')
@@ -103,6 +107,14 @@ router.beforeEach((to, from, next) => {
   else {
     next()
   }
+
+  if (!currentEssay&&!currentTags && to.name === 'essayEdit') {
+    // 如果没有 currentEssay，重定向到默认页面
+    next({ name: 'articles' }); // 替换为你的默认页面路由名称
+  } else {
+    next();
+  }
+
 })
 
 export default router

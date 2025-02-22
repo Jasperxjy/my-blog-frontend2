@@ -4,20 +4,20 @@ import { useUserStore } from '@/stores/user'
 import type { Result } from '@/types/common'
 
 // 服务器基础URL
-export const BASE_URL = 'http://47.108.171.144:8080'
+export const BASE_URL = 'http://47.108.171.144:80'
 // 图片资源基础URL，与后端服务器相同
-export const IMAGE_BASE_URL = 'http://47.108.171.144:8080'
+export const IMAGE_BASE_URL = 'http://47.108.171.144:808'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,  // 允许携带凭证
-
-  timeout: 5000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
 
 // 请求拦截器
 service.interceptors.request.use(

@@ -135,7 +135,7 @@ const handleCreateNote = async (content: string) => {
     // 更新文章内容（从编辑器获取最新内容）
     const updatedEssay = {
       ...currentEssay.value!,
-      essayContext: articleEditorRef.value?.modelValue || currentEssay.value!.essayContext
+      essayContext: articleEditorRef.value?.getContent() || currentEssay.value!.essayContext
     }
 
     const updateResult = await updateEssayContext(currentEssay.value!.essayId, updatedEssay)
@@ -167,7 +167,19 @@ const handleCloseAnnotation = async () => {
   selectedAnnotation.value.id = ''
 }
 
+// 编辑文章方法
+const editEssay = (essay: Essay, tags: EssayTag[]) => {
+  if (essay) {
+    // 将当前文章对象和标签列表保存到 localStorage
+    localStorage.setItem('currentEssay', JSON.stringify(essay));
+    localStorage.setItem('currentTags', JSON.stringify(tags));
 
+    router.push({
+      name: 'essayEdit',
+      params: { id: essay.essayId }
+    });
+  }
+}
 
 </script>
 
@@ -200,12 +212,22 @@ const handleCloseAnnotation = async () => {
                     </el-tag>
                   </div>
 
+                  <!-- 显示文章类型 -->
+                  <div class="meta-row">
+                    <span class="type">文章类型: {{ currentEssay.essayType }}</span>
+                  </div>
+
                   <!-- 第二行标签 -->
                   <div v-if="essayTags.length" class="tags-row">
                     <el-tag v-for="tag in essayTags" :key="tag.essayTagId" class="essay-tag" type="info" size="small">
                       {{ tag.essayTagName }}
                     </el-tag>
                   </div>
+                </div>
+
+                <!-- 编辑按钮，仅管理员可见 -->
+                <div v-if="userStore.isAdmin" class="edit-button">
+                  <el-button type="primary" @click="editEssay(currentEssay, essayTags)">编辑</el-button>
                 </div>
 
                 <!-- 统计数字保持不变 -->
@@ -363,6 +385,12 @@ const handleCloseAnnotation = async () => {
   flex-wrap: wrap;
 }
 
+.type {
+
+  font-size: 1.1rem;
+  
+}
+
 .annotation-container {
   annotation {
     display: inline-block;
@@ -395,5 +423,10 @@ const handleCloseAnnotation = async () => {
     display: none;
     /* 隐藏只读模式的菜单栏 */
   }
+}
+
+/* 添加样式以调整编辑按钮的位置 */
+.edit-button {
+  margin-left: auto; /* 将按钮推到右侧 */
 }
 </style>

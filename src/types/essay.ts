@@ -32,6 +32,11 @@ export interface EssayTag {
   essayTagName: string
 }
 
+export interface AddTagsToEssayDTO {
+  essayId: string
+  tagIds: string[]
+}
+
 export interface Note {
   noteId: string
   userId: string

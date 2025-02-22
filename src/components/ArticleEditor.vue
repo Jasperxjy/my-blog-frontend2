@@ -54,8 +54,14 @@
       <button @click="editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
         表格
       </button>
+      <button @click="editor?.chain().focus().setHardBreak().run()">
+        硬换行
+      </button>
+      <button @click="editor?.chain().focus().toggleLink({ href: '' }).run()">
+        链接
+      </button>
     </div>
-    <editor-content :editor="editor" />
+    <editor-content :editor="editor" class="editor-content" spellcheck="false"/>
   </div>
 </template>
 
@@ -65,7 +71,6 @@ declare global {
     'annotation-click': CustomEvent<{ id: string; pos: DOMRect }>
   }
 }
-// 移除Options API的组件声明
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Highlight from '@tiptap/extension-highlight'
@@ -102,40 +107,51 @@ import cpp from 'highlight.js/lib/languages/cpp'
 import { Annotation } from '@/extensions/annotation.ts'
 import type { Note } from '@/types/essay'
 import StarterKit from '@tiptap/starter-kit'
+import { ElMessage } from 'element-plus'
+import { uploadImage, deleteImage } from '@/api/image'
+import { IMAGE_BASE_URL } from '@/utils/constants'
+import type { Result } from '@/types/common';
+import type { Image as typeImage } from '@/types/image';
+
 
 // 修改 props 定义
 const props = defineProps<{
   modelValue: string
   editable?: boolean
   notes?: Note[] // 新增批注属性
+  essayId?: string // 新增文章ID属性
 }>()
 
-const emit = defineEmits(['annotation-click'])
-// 添加批注面板逻辑
-const selectedAnnotation = ref<{ id: string; pos: DOMRect | null }>({
-  id: '',
-  pos: null
-})
+// 合并事件定义
+const emit = defineEmits(['annotation-click', 'update:model-value']);
+// 新增当前光标位置
 const currentCursorPos = ref<number | null>(null)
 // 在编辑器配置中增强点击处理
 const handleAnnotationClick = (event: CustomEvent) => {
   emit('annotation-click', event.detail) // 将事件传递给父组件
 }
 
+
+
 const lowlight = createLowlight()
 lowlight.register('html', html)
 lowlight.register('css', css)
-lowlight.register('javascript', js)
+lowlight.register('js', js)
+lowlight.register('javascript', js) // 添加别名
+lowlight.register('ts', ts)
 lowlight.register('typescript', ts)
+lowlight.register('py', python)
 lowlight.register('python', python)
 lowlight.register('java', java)
 lowlight.register('cpp', cpp)
+lowlight.register('c++', cpp)
 
 const editor = useEditor({
   content: props.modelValue,
   editable: props.editable ?? true, // 默认可编辑
   onUpdate: ({ editor }) => {
     currentCursorPos.value = editor.state.selection.$anchor.pos
+    emit('update:model-value', editor.getHTML())
   },
   extensions: [
     StarterKit,
@@ -162,9 +178,119 @@ const editor = useEditor({
     ListItem,
     HorizontalRule,
     Blockquote,
-    CodeBlockLowlight.configure({ lowlight, languageClassPrefix: 'language-', defaultLanguage: 'plaintext' }),
-    Image.configure({ allowBase64: true }),
-    Table.configure({ resizable: true }),
+    CodeBlockLowlight.configure({
+      lowlight, languageClassPrefix: 'language-',
+      defaultLanguage: 'plaintext'
+
+    }).extend({
+      addNodeView() {
+        return ({ node, editor, HTMLAttributes }) => {
+          const div = document.createElement('div')
+          const pre = document.createElement('pre')
+          const code = document.createElement('code')
+          const select = document.createElement('select')
+          div.style.position = 'relative'
+          div.style.paddingBottom = '0px'
+          select.className = 'language-selector'
+          select.innerHTML = `
+            <option value="plaintext">Plain Text</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+          `
+          select.value = node.attrs.language || 'plaintext'
+
+          select.onchange = (e) => {
+            editor.commands.updateAttributes('codeBlock', {
+              language: (e.target as HTMLSelectElement).value
+            })
+          }
+
+          select.style.position = 'absolute'
+          select.style.right = '6px'
+          select.style.bottom = '-18px'
+
+          div.style.position = 'relative'
+          pre.append(code)
+          div.append(pre, select)
+          return {
+            dom: div,
+            contentDOM: code,
+          }
+        }
+      }
+    }),
+    Image.configure({
+      allowBase64: false,
+    }).extend({
+      addAttributes() {
+        return {
+          src: {
+            default: null,
+          },
+          // 添加服务器文件标识属性
+          serverId: {
+            default: null,
+            parseHTML: element => element.getAttribute('data-server-id'),
+            renderHTML: attributes => ({ 'data-server-id': attributes.serverId })
+          }
+        }
+      },
+      addNodeView() {
+        return ({ node, getPos, editor }) => {
+          // 当图片被删除时触发
+          const handleDelete = () => {
+            if (node.attrs.serverId) {
+              deleteImage(node.attrs.serverId)
+                .catch(() => ElMessage.error('图片删除失败'))
+            }
+            const pos = typeof getPos === 'function' ? getPos() : undefined
+            if (pos !== undefined) {
+              editor.commands.deleteRange({ from: pos, to: pos + node.nodeSize })
+            }
+          }
+
+          // 添加删除按钮
+          const container = document.createElement('div')
+          const img = document.createElement('img')
+          const delBtn = document.createElement('button')
+
+          img.src = node.attrs.src
+          delBtn.innerHTML = '×'
+          delBtn.style.cssText = `
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        background: red;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        border: none;
+        cursor: pointer;
+        display: ${props.editable ? 'block' : 'none'};
+      `
+          delBtn.onclick = handleDelete
+
+          container.style.position = 'relative'
+          container.style.display = 'inline-block'
+          container.append(img, delBtn)
+          return {
+            dom: container,
+            update: () => {
+              // 动态更新删除按钮显示状态
+              delBtn.style.display = props.editable ? 'block' : 'none'
+              return true
+            }
+          }
+        }
+      }
+    }),
+    Table.configure(
+      { resizable: true }
+    ),
     TableRow,
     TableCell,
     TableHeader,
@@ -177,43 +303,53 @@ const editor = useEditor({
     Underline,
     FileHandler.configure({
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-      onDrop: (currentEditor, files, pos) => {
-        files.forEach(file => {
-          const fileReader = new FileReader()
-
-          fileReader.readAsDataURL(file)
-          fileReader.onload = () => {
+      onDrop: async (currentEditor, files, pos) => {
+        for (const file of files) {
+          try {
+            const formData = new FormData()
+            formData.append('image', file)
+            // 上传图片到服务器
+            const result = await uploadImage(file, props.essayId) as Result
+            const data = result.data as typeImage
+            // 插入图片链接
             currentEditor.chain().insertContentAt(pos, {
               type: 'image',
               attrs: {
-                src: fileReader.result,
-              },
+                src: `${IMAGE_BASE_URL}${data.filePath}`,
+                serverId: data.imageId,
+                alt: file.name,
+                title: file.name
+              }
             }).focus().run()
+          } catch (error) {
+            ElMessage.error('图片上传失败')
           }
-        })
+        }
       },
-      onPaste: (currentEditor, files, htmlContent) => {
-        files.forEach(file => {
-          if (htmlContent) {
-            // if there is htmlContent, stop manual insertion & let other extensions handle insertion via inputRule
-            // you could extract the pasted file from this url string and upload it to a server for example
-            console.log(htmlContent) // eslint-disable-line no-console
-            return false
-          }
-
-          const fileReader = new FileReader()
-
-          fileReader.readAsDataURL(file)
-          fileReader.onload = () => {
-            currentEditor.chain().insertContentAt(currentEditor.state.selection.anchor, {
+      onPaste: async (currentEditor, files) => {
+        const pos = currentEditor.state.selection.$anchor.pos
+        for (const file of files) {
+          try {
+            const formData = new FormData()
+            formData.append('image', file)
+            // 上传图片到服务器
+            const result = await uploadImage(file, props.essayId) as Result
+            const data = result.data as typeImage
+            // 插入图片链接
+            currentEditor.chain().insertContentAt(pos, {
               type: 'image',
               attrs: {
-                src: fileReader.result,
-              },
+                src: `${IMAGE_BASE_URL}${data.filePath}`,
+                serverId: data.imageId,
+                alt: file.name,
+                title: file.name
+              }
             }).focus().run()
+          } catch (error) {
+            ElMessage.error('图片上传失败')
           }
-        })
-      },
+        }
+      }
     }),
   ]
 })
@@ -251,6 +387,9 @@ defineExpose({
       },
       text: `批注`
     }).run()
+  },
+  getContent() {
+    return editor.value?.getHTML() || ''
   }
 })
 
@@ -317,19 +456,20 @@ defineExpose({
 
   /* 代码块插件样式 */
   pre {
-
-    /* 行号 */
     counter-reset: line;
     background: #1e1e1e;
     border-radius: 8px;
     color: #dcdcdc;
     font-family: 'Fira Code', monospace;
-    margin: 1.5rem 0;
-
-    padding: 1.5rem 1rem;
+    margin: 1.5rem 0 ;
+    padding: 2rem 1rem 1rem;
+    /* 增加顶部内边距 */
     position: relative;
     overflow-x: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(15, 15, 15, 0.1);
+    line-height: 1.5;
+
+
 
     &::before {
       content: attr(data-language);
@@ -345,61 +485,111 @@ defineExpose({
 
     code {
       display: block;
-      position: relative;
-      padding-left: 3.5em;
+      overflow-x: auto;
+      padding: 1em;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      line-height: 1.6;
 
-      /* 行号样式 */
-      &::before {
-        content: counter(line);
+      .line {
+        display: block;
         counter-increment: line;
-        position: absolute;
-        left: -2.5em;
-        width: 2.5em;
-        text-align: right;
-        color: #666;
-        user-select: none;
+
+        &::before {
+          content: counter(line);
+          position: absolute;
+          left: -3.5em;
+          width: 3em;
+          text-align: right;
+          color: #666;
+          user-select: none;
+          padding-right: 0.5em;
+        }
+      }
+
+      /* 优化语法高亮 */
+      .hljs-attr,
+      .hljs-attribute {
+        color: #9cdcfe;
+      }
+
+      .hljs-function {
+        .hljs-title {
+          color: #dcdcaa;
+        }
+      }
+
+      .hljs-comment {
+        color: #6a9955;
+        font-style: italic;
+      }
+
+      .hljs-quote {
+
+        color: #57a64a;
+        font-style: italic;
+      }
+
+      .hljs-keyword {
+        color: #569cd6;
+        font-weight: bold;
+      }
+
+
+      .hljs-built_in {
+        color: #4ec9b0;
+      }
+
+      .hljs-type {
+        color: #4ec9b0;
+      }
+
+
+      .hljs-string {
+        color: #d69d85;
+      }
+
+      .hljs-number {
+        color: #b5cea8;
+      }
+
+      .hljs-title {
+
+        &,
+        &.class_ {
+          color: #dcdcaa;
+        }
+      }
+
+      .hljs-params {
+        color: #9cdcfe;
+      }
+
+      .hljs-variable,
+      .hljs-meta {
+        color: #9b9b9b;
       }
     }
 
-    /* 优化语法高亮 */
-    .hljs-comment,
-    .hljs-quote {
+    @media (max-width: 768px) {
+      .language-selector {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        background: #333;
+        border: 1px solid #555;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 10;
 
-      color: #57a64a;
-      font-style: italic;
-    }
-
-    .hljs-keyword {
-      color: #569cd6;
-      font-weight: 600;
-    }
-
-
-    .hljs-built_in,
-    .hljs-type {
-      color: #4ec9b0;
-    }
-
-
-    .hljs-string {
-      color: #d69d85;
-    }
-
-    .hljs-number {
-      color: #b5cea8;
-    }
-
-    .hljs-title {
-      color: #dcdcaa;
-    }
-
-    .hljs-params {
-      color: #9cdcfe;
-    }
-
-    .hljs-variable,
-    .hljs-meta {
-      color: #9b9b9b;
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
   }
 
@@ -464,7 +654,7 @@ defineExpose({
   h4,
   h5,
   h6 {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -489,9 +679,14 @@ defineExpose({
   padding: 0.1rem 0.3rem;
 }
 
-
-
-
+.editor-content {
+  top: 4rem;
+  display: flex;
+  flex-direction: column;
+  /* 垂直排列 */
+  height: 100%;
+  /* 使容器占满父元素 */
+}
 
 .menu-bar button {
   padding: 0.3rem 0.6rem;
@@ -499,6 +694,8 @@ defineExpose({
   background: white;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+  /* 添加过渡效果 */
 }
 
 .menu-bar button:hover {
@@ -523,9 +720,21 @@ defineExpose({
   }
 }
 
-:deep(.ProseMirror) {
+.ProseMirror {
+  top: 0.5rem;
+  min-height: 400px;
+  /* 根据需要调整高度 */
   padding: 1rem;
-  min-height: 300px;
+  /* 添加内边距以避免内容紧贴边缘 */
+  -webkit-user-modify: read-write-plaintext-only;
+  user-select: text;
+  caret-color: auto;
+
+}
+
+
+.ProseMirror-focused {
   outline: none;
+  /* 移除焦点时的默认轮廓 */
 }
 </style>

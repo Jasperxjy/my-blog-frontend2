@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { UserRole } from '@/utils/permission'
-import type { Collection, EssayBrief } from '@/types/essay'
+import type { Collection, EssayBrief ,Essay} from '@/types/essay'
 import { useUserStore } from '@/stores/user'
 import { getCollections, getEssayBriefs, createCollection, updateCollection, deleteCollection } from '@/api/essay'
 import { setPermission, hasPermission } from '@/api/permission'
 import { Plus, Edit, Delete, Setting } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { addEssay } from '@/api/essay'
 
 const collections = ref<Collection[]>([])
 const currentEssays = ref<EssayBrief[]>([])
@@ -94,6 +95,37 @@ const fetchCollections = async () => {
   } catch (error) {
     console.error('获取合集列表失败:', error)
     ElMessage.error('获取合集列表失败')
+  }
+}
+
+// 添加新增文章方法
+const handleAddEssay = async () => {
+  try {
+    const newEssay: Partial<Essay> = {
+      essayTitle: "请输入标题",
+      essayType: "请输入文章类型",
+      essayContext: "请输入正文",
+      essayLikeNum: 0,
+      essayViewNum: 0,
+      essayCollectionNum: 0,
+      userId: userStore.userInfo!.userId!,
+      version: 0,
+      status: 1,
+      classId: selectedCollectionId.value || ''
+    }
+
+    const result = await addEssay(newEssay)
+    if (result.success && result.data) {
+      // 创建成功后跳转到编辑页面，并传入新创建的文章对象和空的标签列表
+      router.push({
+        name: 'essayEdit',
+        params: { id: result.data.essayId }
+      })
+    } else {
+      ElMessage.error(result.errorMsg || '创建文章失败')
+    }
+  } catch (error) {
+    ElMessage.error('创建文章失败')
   }
 }
 
@@ -336,6 +368,14 @@ onMounted(() => {
           </el-tag>
         </div>
       </div>
+      <div v-if="userStore.isAdmin" class="add-essay-button">
+    <el-button type="primary" size="large" @click="handleAddEssay">
+      <el-icon><Plus /></el-icon>
+      新增文章
+    </el-button>
+  </div>
+
+
     </div>
 
     <!-- 新建合集弹窗 -->
@@ -426,6 +466,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.add-essay-button {
+  position: fixed;
+  bottom: 4.1rem;
+  right: 2rem;
+  z-index: 100;
+}
 .articles-container {
   display: flex;
   gap: 2rem;

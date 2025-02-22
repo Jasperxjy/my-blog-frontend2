@@ -65,3 +65,20 @@ export async function uploadImage(
     data: formData
   })
 }
+
+export async function uploadFileImage(
+  file: File,
+  essayId?: string,
+): Promise<Result> {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (essayId) formData.append('essayId', essayId)
+
+  return request('/api/image/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data: formData
+  })
+}

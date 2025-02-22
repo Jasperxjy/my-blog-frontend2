@@ -152,7 +152,7 @@ onMounted(() => {
 <template>
   <div class="tips-container">
     <div class="tips-header">
-      <h2>日有所思，夜有所念</h2>
+      <h2>往事如烟，心迹犹存</h2>
       <button v-if="isAdmin"
               class="add-tip-btn"
               @click="showAddForm = !showAddForm">

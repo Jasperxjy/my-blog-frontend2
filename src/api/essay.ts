@@ -1,6 +1,6 @@
 import { request } from '@/utils/request'
 import type { Result } from '@/types/common'
-import type { Collection, EssayBrief, Essay, EssayTag, Note } from '@/types/essay'
+import type { Collection, EssayBrief, Essay, EssayTag, Note ,AddTagsToEssayDTO} from '@/types/essay'
 
 /**
  * 获取合集列表
@@ -126,6 +126,31 @@ export async function addNote(note: Omit<Note, 'noteId' | 'createTime'>): Promis
   })
 }
 
+/**
+ * 更新批注内容
+ * @param noteId - 批注ID
+ * @param content - 新的批注内容
+ * @returns Promise<Result> - 更新结果
+ */
+
+export async function updateNoteContent(note: Note): Promise<Result> {
+  return request(`/api/note/${note.noteId}/update`, {
+    method: 'PUT',
+    data: note
+  })
+}
+/**
+ * 删除批注
+ * @param noteId - 批注ID
+ * @returns Promise<Result> - 删除结果
+ */
+export async function deleteNote(noteId: string): Promise<Result> {
+  return request(`/api/note/${noteId}/del`, {
+    method: 'DELETE'
+  })
+}
+
+
 export async function startEditEssay(essayId: string, userId: string): Promise<Result> {
   return request(`/api/essay/${essayId}/edit`, {
     method: 'POST',
@@ -144,5 +169,67 @@ export async function endEditEssay(essayId: string, userId: string): Promise<Res
   return request(`/api/essay/${essayId}/end-edit`, {
     method: 'POST',
     params: { userId }
+  })
+}
+
+/**
+ * 新增文章
+ * @param essay - 文章对象
+ * @returns Promise<Result<Essay>> - 新创建的文章
+ */
+export async function addEssay(essay: Partial<Essay>): Promise<Result<Essay>> {
+  return request('/api/essay', {
+    method: 'POST',
+    data: essay
+  })
+}
+
+/**
+ * 获取所有标签
+ */
+export async function getAllTags(): Promise<Result<EssayTag[]>> {
+  return request('/api/essayTag/all', {
+    method: 'GET'
+  })
+}
+
+/**
+ * 新增标签
+ */
+export async function addTag(tag: Omit<EssayTag, 'essayTagId'>): Promise<Result<EssayTag>> {
+  return request('/api/essayTag/add', {
+    method: 'POST',
+    data: tag
+  })
+}
+
+/**
+ * 为文章添加多个标签
+ */
+export async function addTagsToEssay(tags: AddTagsToEssayDTO): Promise<Result<void>> {
+  return request('/api/essayTagList/addTagsToEssay', {
+    method: 'POST',
+    data: tags
+  })
+}
+
+
+
+// 新增更新文章完整接口
+export async function updateEssay(essayId: string, data: Essay): Promise<Result> {
+  return request(`/api/essay/${essayId}`, {
+    method: 'PUT',
+    data
+  })
+}
+
+// 修改已有 removeTagFromEssay 方法
+export async function removeTagFromEssayAPI(params: {
+  essayId: string
+  essayTagId: string
+}): Promise<Result> {
+  return request('/api/essayTagList/removeTagFromEssay', {
+    method: 'DELETE',
+    params
   })
 }

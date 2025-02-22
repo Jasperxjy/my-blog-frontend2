@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Note } from '@/types/essay'
-
+import { ElMessage } from 'element-plus'
+import { updateNoteContent } from '@/api/essay'
 const props = defineProps<{
   notes: Note[]
   selectedAnnotation: {
@@ -13,6 +14,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['close', 'create-note'])
+const isEditing = ref(false)
+const editNoteContent = ref('')
+
 // 在script部分添加
 const showDialog = ref(false)
 const newNoteContent = ref('')
@@ -20,6 +24,26 @@ const newNoteContent = ref('')
 const currentNote = computed(() => {
   return props.notes.find(note => note.noteId === props.selectedAnnotation.id)
 })
+
+// 新增编辑方法
+const handleEditNote = async () => {
+  try {
+    if (!currentNote.value) return
+
+    const updatedNote = {
+      ...currentNote.value,
+      content: editNoteContent.value
+    }
+
+    await updateNoteContent(updatedNote)
+    currentNote.value.content = editNoteContent.value
+    isEditing.value = false
+    ElMessage.success('批注更新成功')
+  } catch (error) {
+    ElMessage.error('批注更新失败')
+    editNoteContent.value = currentNote.value?.content || ''
+  }
+}
 </script>
 
 <template>
@@ -27,9 +51,22 @@ const currentNote = computed(() => {
     <div v-if="currentNote" class="note-card">
       <div class="note-header">
         <div class="user-info">用户：{{ currentNote.userId }}</div>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <div>
+          <el-button v-if="['CLOSE_FRIEND', 'ADMIN'].includes(userRole || '')" size="small"
+            @click="isEditing = true; editNoteContent = currentNote.content">
+            编辑
+          </el-button>
+          <button class="close-btn" @click="$emit('close')">×</button>
+        </div>
       </div>
-      <div class="note-content">{{ currentNote.content }}</div>
+      <div v-if="!isEditing" class="note-content">{{ currentNote.content }}</div>
+      <div v-else class="edit-area">
+        <el-input v-model="editNoteContent" type="textarea" :rows="4" placeholder="请输入批注内容" />
+        <div class="edit-buttons">
+          <el-button size="small" @click="isEditing = false">取消</el-button>
+          <el-button type="primary" size="small" @click="handleEditNote">保存</el-button>
+        </div>
+      </div>
       <div class="note-footer">
         <div class="note-time">{{ new Date(currentNote.createTime).toLocaleString() }}</div>
       </div>
@@ -47,11 +84,7 @@ const currentNote = computed(() => {
     </div>
 
     <el-dialog v-model="showDialog" title="新建批注">
-      <el-input
-        v-model="newNoteContent"
-        type="textarea"
-        :rows="4" 
-      />
+      <el-input v-model="newNoteContent" type="textarea" :rows="4" />
       <template #footer>
         <el-button @click="showDialog = false">取消</el-button>
         <el-button type="primary" @click="$emit('create-note', newNoteContent)">提交</el-button>
@@ -98,9 +131,21 @@ const currentNote = computed(() => {
   padding: 0 8px;
 }
 
+.edit-area {
+  margin-top: 12px;
+}
+
+.edit-buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .note-content {
   line-height: 1.6;
   color: #333;
+  white-space: pre-wrap; /* 保留换行格式 */
 }
 
 .note-footer {
