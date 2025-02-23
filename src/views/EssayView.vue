@@ -147,7 +147,7 @@ const handleCreateNote = async (content: string) => {
     await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
     // 添加成功后关闭弹窗
     selectedAnnotation.value = { id: '', pos: null }
-
+    ElMessage.success('批注创建成功')
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '创建失败')
     // 异常时解锁

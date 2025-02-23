@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import type { Note } from '@/types/essay'
 import { ElMessage } from 'element-plus'
 import { updateNoteContent } from '@/api/essay'
+import NewAnnotationInput from './NewAnnotationInput.vue'
+
 const props = defineProps<{
   notes: Note[]
   selectedAnnotation: {
@@ -44,72 +46,113 @@ const handleEditNote = async () => {
     editNoteContent.value = currentNote.value?.content || ''
   }
 }
+
+const resetDialog = () => {
+  newNoteContent.value = ''; // 清空输入内容
+  showDialog.value = false; // 关闭对话框
+  newAnnotationInput.value?.cancel(); // 调用新组件的 cancel 方法
+};
+
+const createNewNote = (content: string) => {
+  emit('create-note', content);
+};
+
+const newAnnotationInput = ref<InstanceType<typeof NewAnnotationInput> | null>(null);
+
+// 显示新批注输入框
+const showNewAnnotationInput = () => {
+  newAnnotationInput.value?.show(); // 使用可选链操作符
+};
 </script>
 
 <template>
-  <div class="annotation-panel" :style="{ top: selectedAnnotation.pos?.top + 'px' }">
-    <!-- 如果没有当前批注，显示提示和新增批注按钮 -->
-    <div v-if="!currentNote" class="no-notes">
-      <p>当前没有批注。</p>
-      <el-button type="primary" :disabled="!hasCursorPosition" @click="showDialog = true" v-if="hasCursorPosition">
-        新建批注
-      </el-button>
-      <el-tooltip v-else content="请先进入编辑模式选择批注位置" placement="top">
-        <el-button type="primary" disabled>
+  <!-- 将输入框移出容器 -->
+  <new-annotation-input @create-note="createNewNote" ref="newAnnotationInput" />
+
+  <div class="annotation-container">
+    <transition name="slide-fade">
+      <div class="annotation-panel" v-show="currentNote" :style="{
+        top: selectedAnnotation.pos?.top + 'px',
+        transition: 'top 0.3s ease'}">
+        <div v-if="!currentNote" class="no-notes">
+          <p>当前没有批注。</p>
+        </div>
+
+        <div v-else class="note-card">
+          <div class="note-header">
+            <div class="user-info">用户：{{ currentNote.userId }}</div>
+            <div>
+              <el-button v-if="['CLOSE_FRIEND', 'ADMIN'].includes(userRole || '')" size="small"
+                @click="isEditing = true; editNoteContent = currentNote.content">
+                编辑
+              </el-button>
+              <button class="close-btn" @click="$emit('close')">×</button>
+            </div>
+          </div>
+          <div v-if="!isEditing" class="note-content">{{ currentNote.content }}</div>
+          <div v-else class="edit-area">
+            <el-input v-model="editNoteContent" type="textarea" :rows="4" placeholder="请输入批注内容" />
+            <div class="edit-buttons">
+              <el-button size="small" @click="isEditing = false">取消</el-button>
+              <el-button type="primary" size="small" @click="handleEditNote">保存</el-button>
+            </div>
+          </div>
+          <div class="note-footer">
+            <div class="note-time">{{ new Date(currentNote.createTime).toLocaleString() }}</div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 新增批注按钮，固定在容器底部 -->
+    <div class="create-annotation-button" v-if="['CLOSE_FRIEND', 'ADMIN'].includes(userRole || '')">
+      <el-tooltip :content="hasCursorPosition ? '点击添加批注' : '请先选择批注位置'" placement="top">
+        <el-button
+          type="primary"
+          :disabled="!hasCursorPosition"
+          @click="showNewAnnotationInput"
+        >
           新建批注
         </el-button>
       </el-tooltip>
     </div>
 
-    <div v-else class="note-card">
-      <div class="note-header">
-        <div class="user-info">用户：{{ currentNote.userId }}</div>
-        <div>
-          <el-button v-if="['CLOSE_FRIEND', 'ADMIN'].includes(userRole || '')" size="small"
-            @click="isEditing = true; editNoteContent = currentNote.content">
-            编辑
-          </el-button>
-          <button class="close-btn" @click="$emit('close')">×</button>
-        </div>
-      </div>
-      <div v-if="!isEditing" class="note-content">{{ currentNote.content }}</div>
-      <div v-else class="edit-area">
-        <el-input v-model="editNoteContent" type="textarea" :rows="4" placeholder="请输入批注内容" />
-        <div class="edit-buttons">
-          <el-button size="small" @click="isEditing = false">取消</el-button>
-          <el-button type="primary" size="small" @click="handleEditNote">保存</el-button>
-        </div>
-      </div>
-      <div class="note-footer">
-        <div class="note-time">{{ new Date(currentNote.createTime).toLocaleString() }}</div>
-      </div>
-    </div>
-
-    <el-dialog v-model="showDialog" title="新建批注">
-      <el-input v-model="newNoteContent" type="textarea" :rows="4" />
-      <template #footer>
-        <el-button @click="showDialog = false">取消</el-button>
-        <el-button type="primary" @click="$emit('create-note', newNoteContent)">提交</el-button>
-      </template>
-    </el-dialog>
+    <new-annotation-input @create-note="createNewNote" ref="newAnnotationInput" />
   </div>
 </template>
 
 <style scoped>
-.new-note-footer {
-  padding: 16px;
-  border-top: 1px solid #ebeef5;
+.annotation-container {
+  position: fixed;
+  top: 0;
+  right: 20px;
+  bottom: 0;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
 .annotation-panel {
-  position: fixed;
-  right: 20px;
-  width: 300px;
+  position: absolute;
+  width: 100%;
   background: white;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
-  z-index: 1000;
+  z-index: 1001; /* 确保在评论组件之上 */
+  pointer-events: auto; /* 恢复面板的点击事件 */
   transition: top 0.3s ease;
+}
+
+.create-annotation-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1001; /* 确保在评论组件之上 */
+  pointer-events: auto; /* 恢复按钮的点击事件 */
 }
 
 .note-card {
@@ -145,7 +188,7 @@ const handleEditNote = async () => {
 .note-content {
   line-height: 1.6;
   color: #333;
-  white-space: pre-wrap; /* 保留换行格式 */
+  white-space: pre-wrap;
 }
 
 .note-footer {
@@ -154,10 +197,35 @@ const handleEditNote = async () => {
   color: #666;
 }
 
-/* 新增样式以美化没有批注时的提示 */
 .no-notes {
   padding: 16px;
   text-align: center;
   color: #999;
+}
+
+/* 新增过渡动画 */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-20px); /* 调整进入方向 */
+  opacity: 0;
+}
+.slide-fade-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+/* 新增输入框容器定位 */
+.new-annotation-input {
+  position: fixed;
+  right: 20px;
+  bottom: 100px; /* 根据按钮位置调整 */
+  width: 300px;
+  z-index: 1002; /* 确保在批注面板之上 */
 }
 </style>
