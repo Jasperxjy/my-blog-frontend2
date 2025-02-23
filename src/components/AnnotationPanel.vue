@@ -48,7 +48,20 @@ const handleEditNote = async () => {
 
 <template>
   <div class="annotation-panel" :style="{ top: selectedAnnotation.pos?.top + 'px' }">
-    <div v-if="currentNote" class="note-card">
+    <!-- 如果没有当前批注，显示提示和新增批注按钮 -->
+    <div v-if="!currentNote" class="no-notes">
+      <p>当前没有批注。</p>
+      <el-button type="primary" :disabled="!hasCursorPosition" @click="showDialog = true" v-if="hasCursorPosition">
+        新建批注
+      </el-button>
+      <el-tooltip v-else content="请先进入编辑模式选择批注位置" placement="top">
+        <el-button type="primary" disabled>
+          新建批注
+        </el-button>
+      </el-tooltip>
+    </div>
+
+    <div v-else class="note-card">
       <div class="note-header">
         <div class="user-info">用户：{{ currentNote.userId }}</div>
         <div>
@@ -72,17 +85,6 @@ const handleEditNote = async () => {
       </div>
     </div>
 
-    <div v-if="userRole && ['CLOSE_FRIEND', 'ADMIN'].includes(userRole)" class="new-note-footer">
-      <el-button type="primary" :disabled="!hasCursorPosition" @click="showDialog = true" v-if="hasCursorPosition">
-        新建批注
-      </el-button>
-      <el-tooltip v-else content="请先进入编辑模式选择批注位置" placement="top">
-        <el-button type="primary" disabled>
-          新建批注
-        </el-button>
-      </el-tooltip>
-    </div>
-
     <el-dialog v-model="showDialog" title="新建批注">
       <el-input v-model="newNoteContent" type="textarea" :rows="4" />
       <template #footer>
@@ -90,8 +92,6 @@ const handleEditNote = async () => {
         <el-button type="primary" @click="$emit('create-note', newNoteContent)">提交</el-button>
       </template>
     </el-dialog>
-
-
   </div>
 </template>
 
@@ -152,5 +152,12 @@ const handleEditNote = async () => {
   margin-top: 12px;
   font-size: 12px;
   color: #666;
+}
+
+/* 新增样式以美化没有批注时的提示 */
+.no-notes {
+  padding: 16px;
+  text-align: center;
+  color: #999;
 }
 </style>

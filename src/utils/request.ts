@@ -6,7 +6,7 @@ import type { Result } from '@/types/common'
 // 服务器基础URL
 export const BASE_URL = 'http://47.108.171.144:80'
 // 图片资源基础URL，与后端服务器相同
-export const IMAGE_BASE_URL = 'http://47.108.171.144:808'
+export const IMAGE_BASE_URL = 'http://47.108.171.144:80'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
@@ -70,8 +70,6 @@ export async function request<T = unknown>(
     }
     throw new Error('请求失败')
   }
-
-
 }
 
 // 新增：用于处理音频流的请求函数

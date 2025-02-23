@@ -388,7 +388,7 @@ const editEssay = (essay: Essay, tags: EssayTag[]) => {
 .type {
 
   font-size: 1.1rem;
-  
+
 }
 
 .annotation-container {
