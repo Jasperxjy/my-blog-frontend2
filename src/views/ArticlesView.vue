@@ -116,7 +116,10 @@ const handleAddEssay = async () => {
 
     const result = await addEssay(newEssay)
     if (result.success && result.data) {
-      // 创建成功后跳转到编辑页面，并传入新创建的文章对象和空的标签列表
+      // 将新创建的文章数据写入 localStorage，供编辑页初始化使用
+      localStorage.setItem('currentEssay', JSON.stringify(result.data))
+      localStorage.setItem('currentTags', JSON.stringify([]))
+      // 创建成功后跳转到编辑页面
       router.push({
         name: 'essayEdit',
         params: { id: result.data.essayId }

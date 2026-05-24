@@ -107,23 +107,20 @@ router.beforeEach((to, from, next) => {
   // 需要登录但未登录，跳转到登录页
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')
+    return
   }
   // 已登录用户访问登录页，跳转到首页
-  else if (to.path === '/login' && isAuthenticated) {
+  if (to.path === '/login' && isAuthenticated) {
     next('/home')
+    return
+  }
+  // 编辑页需要 localStorage 中的文章数据
+  if (!currentEssay && !currentTags && to.name === 'essayEdit') {
+    next({ name: 'articles' })
+    return
   }
   // 其他情况正常跳转
-  else {
-    next()
-  }
-
-  if (!currentEssay&&!currentTags && to.name === 'essayEdit') {
-    // 如果没有 currentEssay，重定向到默认页面
-    next({ name: 'articles' }); // 替换为你的默认页面路由名称
-  } else {
-    next();
-  }
-
+  next()
 })
 
 export default router
