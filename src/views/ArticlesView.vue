@@ -151,6 +151,12 @@ const fetchEssays = async (collectionId?: string) => {
 const handleCollectionClick = (collectionId?: string, collection?: Collection) => {
   selectedCollectionId.value = collectionId
   currentCollection.value = collection
+  // 保存当前选择的合集到 sessionStorage，回退时可恢复
+  if (collectionId) {
+    sessionStorage.setItem('articlesSelectedCollectionId', collectionId)
+  } else {
+    sessionStorage.removeItem('articlesSelectedCollectionId')
+  }
   fetchEssays(collectionId)
 }
 
@@ -242,6 +248,7 @@ const confirmDelete = async () => {
       ElMessage.success('删除成功')
       currentCollection.value = undefined
       selectedCollectionId.value = undefined
+      sessionStorage.removeItem('articlesSelectedCollectionId')
       await fetchCollections()
     }
   } catch (error) {
@@ -281,8 +288,21 @@ const handleEssayClick = (essay: EssayBrief) => {
   })
 }
 
-onMounted(() => {
-  fetchCollections()
+onMounted(async () => {
+  await fetchCollections()
+  // 尝试恢复之前选择的合集
+  const savedCollectionId = sessionStorage.getItem('articlesSelectedCollectionId')
+  if (savedCollectionId) {
+    const collection = collections.value.find(c => c.collectionId === savedCollectionId)
+    if (collection) {
+      selectedCollectionId.value = savedCollectionId
+      currentCollection.value = collection
+      fetchEssays(savedCollectionId)
+      return
+    }
+    // 合集已被删除，清除保存的状态
+    sessionStorage.removeItem('articlesSelectedCollectionId')
+  }
   // 默认加载未归类文章
   fetchEssays()
 })
