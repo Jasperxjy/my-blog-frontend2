@@ -334,7 +334,7 @@ const currentEssayClassId = computed({
       </div>
     </div>
     <article-editor ref="articleEditorRef" :model-value="currentEssayContext" :editable="true"
-      style="min-height: 66cap;" @update:model-value="handleContentChange" />
+      :essay-id="currentEssay?.essayId" style="min-height: 66cap;" @update:model-value="handleContentChange" />
     <el-dialog v-model="showTagDialog" title="添加标签" width="30%">
       <div class="new-tag-input">
         <el-input v-model="newTagName" placeholder="输入新标签名称">

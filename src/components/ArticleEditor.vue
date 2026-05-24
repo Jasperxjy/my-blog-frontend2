@@ -61,13 +61,7 @@
         链接
       </button>
     </div>
-    <editor-content
-      :editor="editor"
-      class="editor-content"
-      spellcheck="false"
-      @drop="handleDrop"
-      @paste="handlePaste"
-    />
+    <editor-content :editor="editor" class="editor-content" spellcheck="false" />
   </div>
 </template>
 
@@ -157,12 +151,108 @@ lowlight.register('bash', bash)
 lowlight.register('shell', bash)
 lowlight.register('sh', bash)
 
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+const handleImageUpload = async (file: File, pos: number) => {
+  if (!editor.value || !props.essayId) return
+  try {
+    const result = await uploadImage(file, props.essayId)
+    if (!result.data) throw new Error('上传失败')
+    const data = result.data
+    editor.value.chain().insertContentAt(pos, {
+      type: 'image',
+      attrs: {
+        src: `${IMAGE_BASE_URL}${data.filePath}`,
+        serverId: data.imageId,
+        alt: file.name,
+        title: file.name
+      }
+    }).focus().run()
+  } catch (error) {
+    ElMessage.error('图片上传失败')
+  }
+}
+
+const handleWindowDragOver = (event: DragEvent) => {
+  // 只有事件目标在编辑器区域内才阻止默认行为
+  const editorEl = document.querySelector('.editor')
+  if (editorEl && editorEl.contains(event.target as Node)) {
+    event.preventDefault()
+  }
+}
+
+const handleWindowDrop = (event: DragEvent) => {
+  const editorEl = document.querySelector('.editor')
+  if (!editorEl || !editorEl.contains(event.target as Node)) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  if (!editor.value || !props.essayId) {
+    ElMessage.warning('编辑器未就绪或文章ID缺失')
+    return
+  }
+
+  const dt = event.dataTransfer
+  const files = Array.from(dt?.files || []).filter((f) =>
+    ALLOWED_IMAGE_TYPES.includes(f.type)
+  )
+
+  if (!files.length) {
+    ElMessage.info(`未检测到图片文件，dataTransfer.types: ${JSON.stringify(dt?.types || [])}`)
+    return
+  }
+
+  ElMessage.info(`检测到 ${files.length} 个图片文件，开始上传...`)
+
+  const view = editor.value.view
+  const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
+  const pos = coords?.pos ?? view.state.selection.$anchor.pos
+  files.forEach((file) => handleImageUpload(file, pos))
+}
+
+const handleWindowPaste = (event: ClipboardEvent) => {
+  const editorEl = document.querySelector('.editor')
+  if (!editorEl || !editorEl.contains(event.target as Node)) return
+
+  if (!editor.value || !props.essayId) {
+    ElMessage.warning('编辑器未就绪或文章ID缺失')
+    return
+  }
+
+  const items = Array.from(event.clipboardData?.items || [])
+  const imageItems = items.filter((item) =>
+    ALLOWED_IMAGE_TYPES.includes(item.type)
+  )
+
+  if (!imageItems.length) {
+    // 没有图片数据，不拦截，让 ProseMirror 正常处理文本粘贴
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  ElMessage.info(`检测到 ${imageItems.length} 个粘贴图片，开始上传...`)
+
+  const pos = editor.value.view.state.selection.$anchor.pos
+  imageItems.forEach((item) => {
+    const file = item.getAsFile()
+    if (file) handleImageUpload(file, pos)
+  })
+}
+
 const editor = useEditor({
   content: props.modelValue,
   editable: props.editable ?? true, // 默认可编辑
   onUpdate: ({ editor }) => {
     currentCursorPos.value = editor.state.selection.$anchor.pos
     emit('update:model-value', editor.getHTML())
+  },
+  editorProps: {
+    handleDOMEvents: {
+      // drag/drop/paste 事件通过 Vue 模板 capture 阶段处理，见 handleDragOver/handleDrop/handlePaste
+    },
   },
   extensions: [
     StarterKit,
@@ -344,6 +434,9 @@ const editor = useEditor({
 // 在onMounted生命周期中添加
 onMounted(() => {
   editor.value?.view.dom.addEventListener('annotation-click', handleAnnotationClick)
+  window.addEventListener('dragover', handleWindowDragOver, true)
+  window.addEventListener('drop', handleWindowDrop, true)
+  window.addEventListener('paste', handleWindowPaste, true)
 })
 
 
@@ -352,7 +445,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   editor.value?.destroy()
   editor.value?.view.dom.removeEventListener('annotation-click', handleAnnotationClick)
-
+  window.removeEventListener('dragover', handleWindowDragOver, true)
+  window.removeEventListener('drop', handleWindowDrop, true)
+  window.removeEventListener('paste', handleWindowPaste, true)
 })
 
 // 添加内容同步逻辑
@@ -367,65 +462,6 @@ watch(() => props.modelValue, (newValue) => {
   }
 })
 
-
-// 处理图片拖拽上传
-const handleDrop = async (event: DragEvent) => {
-  event.preventDefault()
-  const files = Array.from(event.dataTransfer?.files || []).filter((f) =>
-    ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(f.type)
-  )
-  if (!files.length || !editor.value || !props.essayId) return
-
-  const pos = editor.value.view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
-  if (pos == null) return
-
-  for (const file of files) {
-    try {
-      const result = await uploadImage(file, props.essayId)
-      if (!result.data) throw new Error('上传失败')
-      const data = result.data
-      editor.value.chain().insertContentAt(pos, {
-        type: 'image',
-        attrs: {
-          src: `${IMAGE_BASE_URL}${data.filePath}`,
-          serverId: data.imageId,
-          alt: file.name,
-          title: file.name
-        }
-      }).focus().run()
-    } catch (error) {
-      ElMessage.error('图片上传失败')
-    }
-  }
-}
-
-// 处理图片粘贴上传
-const handlePaste = async (event: ClipboardEvent) => {
-  const files = Array.from(event.clipboardData?.files || []).filter((f) =>
-    ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(f.type)
-  )
-  if (!files.length || !editor.value || !props.essayId) return
-
-  const pos = editor.value.state.selection.$anchor.pos
-  for (const file of files) {
-    try {
-      const result = await uploadImage(file, props.essayId)
-      if (!result.data) throw new Error('上传失败')
-      const data = result.data
-      editor.value.chain().insertContentAt(pos, {
-        type: 'image',
-        attrs: {
-          src: `${IMAGE_BASE_URL}${data.filePath}`,
-          serverId: data.imageId,
-          alt: file.name,
-          title: file.name
-        }
-      }).focus().run()
-    } catch (error) {
-      ElMessage.error('图片上传失败')
-    }
-  }
-}
 
 defineExpose({
   currentCursorPos,
