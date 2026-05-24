@@ -12,6 +12,8 @@ import { addEssay } from '@/api/essay'
 
 const collections = ref<Collection[]>([])
 const currentEssays = ref<EssayBrief[]>([])
+const allEssays = ref<EssayBrief[]>([]) // 存储原始文章列表，用于切换过滤
+const showDeletedEssays = ref(false) // 管理员是否显示已删除文章，默认隐藏
 const userStore = useUserStore()
 const selectedCollectionId = ref<string | undefined>(undefined)
 const currentCollection = ref<Collection | undefined>(undefined)
@@ -132,16 +134,25 @@ const handleAddEssay = async () => {
   }
 }
 
+// 应用文章过滤规则
+const applyEssayFilter = () => {
+  currentEssays.value = allEssays.value.filter(essay => {
+    // 非管理员只能看正常文章
+    if (!userStore.isAdmin) {
+      return essay.status === ESSAY_STATUS.NORMAL
+    }
+    // 管理员：默认隐藏已删除，开启开关后显示全部
+    return showDeletedEssays.value || essay.status !== ESSAY_STATUS.DELETED
+  })
+}
+
 // 获取文章列表
 const fetchEssays = async (collectionId?: string) => {
   try {
     const result = await getEssayBriefs(collectionId)
     if (result.success && result.data) {
-      // 根据用户角色过滤文章
-      const filteredEssays = userStore.isAdmin
-        ? result.data
-        : result.data.filter(essay => essay.status === ESSAY_STATUS.NORMAL)
-      currentEssays.value = filteredEssays
+      allEssays.value = result.data
+      applyEssayFilter()
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
@@ -393,6 +404,16 @@ onMounted(async () => {
         </el-button-group>
       </div>
 
+      <!-- 管理员可见：显示已删除文章切换开关 -->
+      <div v-if="userStore.isAdmin" class="deleted-toggle">
+        <el-switch
+          v-model="showDeletedEssays"
+          active-text="显示已删除"
+          inactive-text="隐藏已删除"
+          @change="applyEssayFilter"
+        />
+      </div>
+
       <div v-if="currentEssays.length === 0" class="empty-state">
         <div class="empty-message">
           <p class="primary-text">文字是思维的痕迹，书写是心灵的沉淀</p>
@@ -588,6 +609,14 @@ onMounted(async () => {
   padding: 0 1rem 2rem;
   color: #606266;
   font-size: 1.1rem;
+}
+
+.deleted-toggle {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1rem 1rem;
+  display: flex;
+  justify-content: flex-end;
   line-height: 1.6;
   text-align: center;
   font-weight: 300;
