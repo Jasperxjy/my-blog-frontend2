@@ -102,14 +102,24 @@ const handleEssayClick = (essayId: string) => {
 }
 // 添加处理方法
 const handleCreateNote = async (content: string) => {
+  if (!currentEssay.value) {
+    ElMessage.error('文章未加载')
+    return
+  }
+  const essayId = currentEssay.value.essayId
+  const userId = userStore.userInfo?.userId
+  if (!userId) {
+    ElMessage.error('用户未登录')
+    return
+  }
   try {
     // 获取当前光标位置
     const cursorPos = articleEditorRef.value?.currentCursorPos
     if (!cursorPos) throw new Error('请先选择批注位置')
     // 1. 创建批注记录
     const noteResult = await addNote({
-      essayId: currentEssay.value!.essayId,
-      userId: userStore.userInfo!.userId!,
+      essayId,
+      userId,
       content,
       position: cursorPos // 实际位置由后续插入操作决定
     })
@@ -117,7 +127,7 @@ const handleCreateNote = async (content: string) => {
     if (!noteResult.success) throw new Error(noteResult.errorMsg)
 
     // 2. 进入编辑模式
-    const lockResult = await startEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    const lockResult = await startEditEssay(essayId, userId)
     if (!lockResult.success) throw new Error('文章加锁失败')
 
     // 3. 准备编辑器状态
@@ -134,24 +144,24 @@ const handleCreateNote = async (content: string) => {
 
     // 更新文章内容（从编辑器获取最新内容）
     const updatedEssay = {
-      ...currentEssay.value!,
-      essayContext: articleEditorRef.value?.getContent() || currentEssay.value!.essayContext
+      ...currentEssay.value,
+      essayContext: articleEditorRef.value?.getContent() || currentEssay.value.essayContext
     }
 
-    const updateResult = await updateEssayContext(currentEssay.value!.essayId, updatedEssay)
+    const updateResult = await updateEssayContext(essayId, updatedEssay)
     if (!updateResult.success) throw new Error(updateResult.errorMsg)
 
     // 更新本地批注列表
-    essayNotes.value = (await getEssayNotes(currentEssay.value!.essayId)).data ?? []
+    essayNotes.value = (await getEssayNotes(essayId)).data ?? []
     // 解锁文章
-    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    await endEditEssay(essayId, userId)
     // 添加成功后关闭弹窗
     selectedAnnotation.value = { id: '', pos: null }
     ElMessage.success('批注创建成功')
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '创建失败')
     // 异常时解锁
-    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    await endEditEssay(essayId, userId)
   }finally {
     isEditing.value = false
     currentNoteContent.value = ''
@@ -160,8 +170,18 @@ const handleCreateNote = async (content: string) => {
 
 // 添加关闭处理方法
 const handleCloseAnnotation = async () => {
+  if (!currentEssay.value) {
+    ElMessage.error('文章未加载')
+    return
+  }
+  const essayId = currentEssay.value.essayId
+  const userId = userStore.userInfo?.userId
+  if (!userId) {
+    ElMessage.error('用户未登录')
+    return
+  }
   if (isEditing.value) {
-    await endEditEssay(currentEssay.value!.essayId, userStore.userInfo!.userId!)
+    await endEditEssay(essayId, userId)
     isEditing.value = false
   }
   selectedAnnotation.value.id = ''

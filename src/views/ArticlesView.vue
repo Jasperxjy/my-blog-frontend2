@@ -70,27 +70,27 @@ const fetchCollections = async () => {
     const result = await getCollections()
     if (result.success && result.data) {
       const allCollections = result.data
-      const filteredCollections: Collection[] = []
 
-      for (const collection of allCollections) {
-        // 管理员可以看到所有合集
-        if (userStore.isAdmin) {
-          filteredCollections.push(collection)
-          continue
-        }
-
-        // 确保 userInfo 不为 null
-        const userId = userStore.userInfo?.userId
-        if (!userId) {
-          ElMessage.error('用户信息未加载')
-          return
-        }
-
-        const permissionResult = await hasPermission(userId, collection.collectionId)
-        if (permissionResult.success && permissionResult.data) {
-          filteredCollections.push(collection)
-        }
+      // 管理员可以看到所有合集
+      if (userStore.isAdmin) {
+        collections.value = allCollections
+        return
       }
+
+      // 确保 userInfo 不为 null
+      const userId = userStore.userInfo?.userId
+      if (!userId) {
+        ElMessage.error('用户信息未加载')
+        return
+      }
+
+      const permissionResults = await Promise.all(
+        allCollections.map(collection => hasPermission(userId, collection.collectionId))
+      )
+
+      const filteredCollections = allCollections.filter((_, index) =>
+        permissionResults[index].success && permissionResults[index].data
+      )
 
       collections.value = filteredCollections
     }
@@ -615,8 +615,8 @@ onMounted(async () => {
 
 .deleted-toggle {
   position: fixed;
-  bottom: 2rem;
-  right: 8rem;
+  bottom: 0.5rem;
+  right: 2rem;
   z-index: 100;
   line-height: 1.6;
   text-align: center;

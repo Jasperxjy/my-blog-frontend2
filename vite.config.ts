@@ -12,6 +12,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    sourcemap: false,
+  },
   server: {
     port: 4000,
     strictPort: true, // 添加此选项

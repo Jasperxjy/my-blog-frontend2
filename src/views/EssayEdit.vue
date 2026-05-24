@@ -30,6 +30,7 @@ const selectedTags = ref<string[]>([])
 const autoSaveTimeout = ref<number | null>(null)
 const lastSavedContent = ref('')
 const userStore = useUserStore()
+const articleEditorRef = ref<InstanceType<typeof ArticleEditor> | null>(null)
 
 // 获取所有可用标签
 const fetchAllTags = async () => {
@@ -80,16 +81,17 @@ const createNewTag = async () => {
 
 // 为文章添加选中的标签
 const addTags = async () => {
+  if (!currentEssay.value) return
   try {
     const result = await addTagsToEssay({
-      essayId: currentEssay.value!.essayId,
+      essayId: currentEssay.value.essayId,
       tagIds: selectedTags.value
     });
     if (result.success) {
       ElMessage.success('添加标签成功');
       showTagDialog.value = false;
       try {
-        const result = await getEssayTags(currentEssay.value!.essayId)
+        const result = await getEssayTags(currentEssay.value.essayId)
         if (result.success && result.data) {
           essayTags.value = result.data
         }
@@ -111,10 +113,9 @@ const availableTags = computed(() => {
 
 // 内容自动保存处理函数
 const handleContentChange = async (content: string) => {
+  if (!currentEssay.value) return
   // 立即更新当前文章内容
-  if (currentEssay.value) {
-    currentEssay.value.essayContext = content;
-  }
+  currentEssay.value.essayContext = content;
   // 清除旧定时器
   if (autoSaveTimeout.value) clearTimeout(autoSaveTimeout.value)
 
@@ -138,6 +139,7 @@ const handleContentChange = async (content: string) => {
 
 // 标题和合集自动保存处理函数
 const handleOtherChange = async () => {
+  if (!currentEssay.value) return
   if (autoSaveTimeout.value) clearTimeout(autoSaveTimeout.value)
 
   autoSaveTimeout.value = window.setTimeout(async () => {
@@ -167,7 +169,7 @@ onBeforeUnmount(() => {
 })
 
 // 初始化
-onMounted(() => {
+onMounted(async () => {
   // 从 localStorage 中读取当前文章对象和标签列表
   const essayData = localStorage.getItem('currentEssay');
   const tagsData = localStorage.getItem('currentTags');
@@ -181,9 +183,15 @@ onMounted(() => {
     essayTags.value = JSON.parse(tagsData);
   }
 
+  if (!currentEssay.value) return
+
   //如果文章状态不是1，新建的文章状态一定是1，表明是从已有文章中进入的，就调用编辑文章给文章加锁
-  if (currentEssay.value?.status != 1) {
-    startEditEssay(currentEssay.value!.essayId, userStore.userInfo?.userId || '')
+  if (currentEssay.value.status != 1) {
+    try {
+      await startEditEssay(currentEssay.value.essayId, userStore.userInfo?.userId || '')
+    } catch {
+      ElMessage.error('文章加锁失败')
+    }
   }
   fetchAllTags()
   fetchCollections()
@@ -193,19 +201,18 @@ onMounted(() => {
 
 // 新增结束编辑处理方法
 const handleEndEdit = async () => {
+  if (!currentEssay.value) return
   try {
     // 立即保存所有内容
-    if (currentEssay.value) {
-      const updateResult = await updateEssay(currentEssay.value.essayId, currentEssay.value)
-      if (!updateResult.success) {
-        ElMessage.error(updateResult.errorMsg || '保存文章失败')
-        return
-      }
+    const updateResult = await updateEssay(currentEssay.value.essayId, currentEssay.value)
+    if (!updateResult.success) {
+      ElMessage.error(updateResult.errorMsg || '保存文章失败')
+      return
     }
 
     // 调用解锁接口
     const result = await endEditEssay(
-      currentEssay.value!.essayId,
+      currentEssay.value.essayId,
       userStore.userInfo?.userId || ''
     )
 
@@ -222,9 +229,10 @@ const handleEndEdit = async () => {
 
 // 修复标签删除方法
 const removeTagFromEssay = async (tagId: string) => {
+  if (!currentEssay.value) return
   try {
     await removeTagFromEssayAPI({
-      essayId: currentEssay.value!.essayId, // [!code ++]
+      essayId: currentEssay.value.essayId,
       essayTagId: tagId
     })
     essayTags.value = essayTags.value.filter(t => t.essayTagId !== tagId)

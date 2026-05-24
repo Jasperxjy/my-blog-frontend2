@@ -39,26 +39,29 @@ const fetchMusic = async () => {
     const result = await musicApi.getAllMusic()
     if (result.success && result.data) {
       const musicList = result.data as Music[]
-      const filteredMusic: Music[] = []
 
-      for (const music of musicList) {
-        if (userStore.isAdmin) {
-          filteredMusic.push(music)
-          continue
-        }
-
-        // 确保 userInfo 不为 null
-        const userId = userStore.userInfo?.userId
-        if (!userId) {
-          showError('用户信息未加载')
-          return
-        }
-
-        const permissionResult = await permissionApi.hasPermission(userId, music.musicId)
-        if (permissionResult.success && permissionResult.data) {
-          filteredMusic.push(music)
-        }
+      // 管理员可以看到所有音乐
+      if (userStore.isAdmin) {
+        allMusic.value = musicList.sort((a, b) =>
+          a.fileName.localeCompare(b.fileName)
+        )
+        return
       }
+
+      // 确保 userInfo 不为 null
+      const userId = userStore.userInfo?.userId
+      if (!userId) {
+        showError('用户信息未加载')
+        return
+      }
+
+      const permissionResults = await Promise.all(
+        musicList.map(music => permissionApi.hasPermission(userId, music.musicId))
+      )
+
+      const filteredMusic = musicList.filter((_, index) =>
+        permissionResults[index].success && permissionResults[index].data
+      )
 
       // 按音乐名称排序
       allMusic.value = filteredMusic.sort((a, b) =>
@@ -72,10 +75,7 @@ const fetchMusic = async () => {
 
 // 播放音乐
 const playMusic = (music: Music) => {
-  console.log('Playing music:', music)
-  playerStore.currentMusic = music
-  playerStore.isVisible = true
-  playerStore.isPlaying = true
+  playerStore.play(music)
 }
 
 // 处理文件上传

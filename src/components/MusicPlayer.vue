@@ -28,31 +28,6 @@ const duration = ref(0)
 
 const isMinimized = ref(false)
 
-// 添加加载锁和清理函数
-let isPending = false
-
-watch(() => props.currentMusic, async (newMusic) => {
-  if (!newMusic || isPending) return
-  isPending = true
-
-  try {
-    if (audio.value) {
-      audio.value.pause()
-      audio.value.src = `${MUSIC_BASE_URL}${newMusic.filePath}`
-      await audio.value.load()
-
-      if (props.playing) {
-        await audio.value.play()
-        isPlaying.value = true
-      }
-    }
-  } catch (error) {
-    console.error('音乐加载失败:', error)
-  } finally {
-    isPending = false
-  }
-})
-
 // 监听当前音乐变化
 watch(() => props.currentMusic, async (newMusic) => {
   if (newMusic && audio.value) {

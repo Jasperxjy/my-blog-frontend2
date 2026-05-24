@@ -63,28 +63,28 @@ const fetchAlbums = async () => {
     console.log('获取相册结果:', result)
     if (result.success && result.data) {
       const allAlbums = result.data as Album[]
-      const filteredAlbums: Album[] = []
 
-      for (const album of allAlbums) {
-        // 管理员可以看到所有相册
-        if (userStore.isAdmin) {
-          filteredAlbums.push(album)
-          continue
-        }
-
-        // 确保 userInfo 不为 null
-        const userId = userStore.userInfo?.userId
-        if (!userId) {
-          showError('用户信息未加载')
-          return
-        }
-
-        const permissionResult = await permissionApi.hasPermission(userId, album.albumId)
-        console.log('相册权限:', album.title, permissionResult)
-        if (permissionResult.success && permissionResult.data) {
-          filteredAlbums.push(album)
-        }
+      // 管理员可以看到所有相册
+      if (userStore.isAdmin) {
+        albums.value = allAlbums
+        return
       }
+
+      // 确保 userInfo 不为 null
+      const userId = userStore.userInfo?.userId
+      if (!userId) {
+        showError('用户信息未加载')
+        return
+      }
+
+      const permissionResults = await Promise.all(
+        allAlbums.map(album => permissionApi.hasPermission(userId, album.albumId))
+      )
+
+      const filteredAlbums = allAlbums.filter((_, index) =>
+        permissionResults[index].success && permissionResults[index].data
+      )
+
       console.log('过滤后的相册:', filteredAlbums)
       albums.value = filteredAlbums
     }
@@ -446,18 +446,18 @@ onMounted(() => {
             <h3>{{ selectedImage?.fileName }}</h3>
             <p>上传时间：{{ selectedImage?.updateTime }}</p>
             <p>描述：{{ selectedImage?.description }}</p>
-            <div v-if="userStore.isAdmin" class="admin-actions">
-              <el-button type="primary" @click="startEdit(selectedImage!)">编辑</el-button>
-              <el-button type="danger" @click="deleteImage(selectedImage!.imageId)">删除</el-button>
+            <div v-if="userStore.isAdmin && selectedImage" class="admin-actions">
+              <el-button type="primary" @click="startEdit(selectedImage)">编辑</el-button>
+              <el-button type="danger" @click="deleteImage(selectedImage.imageId)">删除</el-button>
             </div>
           </template>
           <template v-else>
-            <el-form>
+            <el-form v-if="editingImage">
               <el-form-item label="图片名称">
-                <el-input v-model="editingImage!.fileName" />
+                <el-input v-model="editingImage.fileName" />
               </el-form-item>
               <el-form-item label="图片描述">
-                <el-input type="textarea" v-model="editingImage!.description" />
+                <el-input type="textarea" v-model="editingImage.description" />
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="saveEdit">保存</el-button>
