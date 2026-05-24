@@ -14,7 +14,7 @@
       <!-- 登录表单 -->
       <form v-if="isLogin" @submit.prevent="handleLogin" class="auth-form">
         <div class="form-item">
-          <input v-model="loginForm.email" type="text" placeholder="请输入账号">
+          <input v-model="loginForm.email" type="text" placeholder="请输入账号" aria-label="邮箱账号">
           <span v-if="userInfo" class="user-status">
             <span class="user-name">{{ userInfo.userName }}</span>
             {{ getUserStatusText(userInfo.status ?? -1) }}
@@ -24,7 +24,7 @@
           </span>
         </div>
         <div class="form-item">
-          <input v-model="loginForm.password" type="password" placeholder="请输入密码">
+          <input v-model="loginForm.password" type="password" placeholder="请输入密码" aria-label="密码">
         </div>
         <button type="submit">登录</button>
       </form>
@@ -32,10 +32,10 @@
       <!-- 注册表单 -->
       <form v-else @submit.prevent="handleRegister" class="auth-form">
         <div class="form-item">
-          <input v-model="registerForm.userName" type="text" placeholder="请输入用户名">
+          <input v-model="registerForm.userName" type="text" placeholder="请输入用户名" aria-label="用户名">
         </div>
         <div class="form-item">
-          <input v-model="registerForm.email" type="text" placeholder="请输入邮箱账号">
+          <input v-model="registerForm.email" type="text" placeholder="请输入邮箱账号" aria-label="邮箱账号">
           <span v-if="userInfo" class="user-status">
             <span class="user-name">{{ userInfo.userName }}</span>
             {{ getUserStatusText(userInfo.status ?? -1) }}
@@ -45,10 +45,10 @@
           </span>
         </div>
         <div class="form-item">
-          <input v-model="registerForm.password" type="password" placeholder="请输入密码">
+          <input v-model="registerForm.password" type="password" placeholder="请输入密码" aria-label="密码">
         </div>
         <div class="form-item">
-          <select v-model="registerForm.role">
+          <select v-model="registerForm.role" aria-label="角色">
             <!-- <option value="ADMIN">管理员</option> -->
             <option value="FRIEND">好友</option>
             <option value="CLOSE_FRIEND">密友/亲人</option>
@@ -156,12 +156,12 @@ const debouncedCheckUser = debounce(async (email: string) => {
   if (email) {
     try {
       const result = await authApi.checkUser(email)
-      if (result.success) {
-        userInfo.value = result.data as UserInfoDTO
-        username.value = userInfo.value.userName || ''
+      if (result.success && result.data) {
+        userInfo.value = result.data
+        username.value = result.data.userName || ''
 
         // 如果是注册页面且用户已存在，显示提示
-        if (!isLogin.value && userInfo.value.status !== undefined) {
+        if (!isLogin.value && result.data.status !== undefined) {
           showError('该邮箱已被注册')
         }
       } else {
@@ -231,7 +231,7 @@ const handleLogin = async () => {
     const result = await authApi.login(loginForm.value)
     if (result.success && typeof result.data === 'string') {
       userStore.setToken(result.data)
-      userStore.setUserInfo(userInfo.value as UserInfoDTO)
+      userStore.setUserInfo(userInfo.value!)
       router.push('/home')
     } else {
       showError(result.errorMsg || '登录失败')

@@ -38,7 +38,7 @@ const fetchMusic = async () => {
   try {
     const result = await musicApi.getAllMusic()
     if (result.success && result.data) {
-      const musicList = result.data as Music[]
+      const musicList = result.data
 
       // 管理员可以看到所有音乐
       if (userStore.isAdmin) {

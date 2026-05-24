@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { readonly, ref, computed } from 'vue'
 import type { UserInfoDTO } from '@/types/auth'
 import { checkPermission, UserRole } from '@/utils/permission'
 
@@ -40,8 +40,8 @@ export const useUserStore = defineStore('user', () => {
   })
 
   return {
-    token,
-    userInfo,
+    token: readonly(token),
+    userInfo: readonly(userInfo),
     setToken,
     clearUser,
     setUserInfo,

@@ -67,7 +67,7 @@ const addTip = async () => {
         content: newTipContent.value,
         time: '',
         status: 1
-      } as Tip
+      }
     })
 
     if (result.success) {

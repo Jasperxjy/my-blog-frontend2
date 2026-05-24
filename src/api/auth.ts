@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { LoginDTO, RegisterDTO } from '@/types/auth'
+import type { LoginDTO, RegisterDTO, UserInfoDTO } from '@/types/auth'
 import type { Result } from '@/types/common'
 
 /**
@@ -31,7 +31,7 @@ export async function register(data: RegisterDTO): Promise<Result> {
  * @param email - 用户邮箱
  * @returns Promise<Result> - 查询结果
  */
-export async function checkUser(email: string): Promise<Result> {
+export async function checkUser(email: string): Promise<Result<UserInfoDTO>> {
   return request(`/api/user/check`, {
     params: { email },
   })

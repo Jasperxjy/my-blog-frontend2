@@ -77,7 +77,7 @@ const fetchEssayContent = async (essayId: string) => {
 
 // 初始化文章列表
 onMounted(() => {
-  const essayId = route.params.id as string
+  const essayId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
   // 从 sessionStorage 获取文章列表
   const savedList = sessionStorage.getItem('currentEssayList')
   if (savedList) {

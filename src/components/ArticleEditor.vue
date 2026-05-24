@@ -309,8 +309,9 @@ const editor = useEditor({
             const formData = new FormData()
             formData.append('image', file)
             // 上传图片到服务器
-            const result = await uploadImage(file, props.essayId) as Result
-            const data = result.data as typeImage
+            const result = await uploadImage(file, props.essayId)
+            if (!result.data) throw new Error('上传失败')
+            const data = result.data
             // 插入图片链接
             currentEditor.chain().insertContentAt(pos, {
               type: 'image',
@@ -333,8 +334,9 @@ const editor = useEditor({
             const formData = new FormData()
             formData.append('image', file)
             // 上传图片到服务器
-            const result = await uploadImage(file, props.essayId) as Result
-            const data = result.data as typeImage
+            const result = await uploadImage(file, props.essayId)
+            if (!result.data) throw new Error('上传失败')
+            const data = result.data
             // 插入图片链接
             currentEditor.chain().insertContentAt(pos, {
               type: 'image',
@@ -369,9 +371,14 @@ onBeforeUnmount(() => {
 })
 
 // 添加内容同步逻辑
+let isUpdatingFromParent = false
 watch(() => props.modelValue, (newValue) => {
-  if (newValue !== editor.value?.getHTML()) {
-    editor.value?.commands.setContent(newValue)
+  if (!editor.value || isUpdatingFromParent) return
+  const currentHtml = editor.value.getHTML()
+  if (newValue !== currentHtml) {
+    isUpdatingFromParent = true
+    editor.value.commands.setContent(newValue)
+    isUpdatingFromParent = false
   }
 })
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { readonly, ref } from 'vue'
 import type { Music } from '@/types/music'
 
 export const usePlayerStore = defineStore('player', () => {
@@ -22,9 +22,9 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    currentMusic,
-    isVisible,
-    isPlaying,
+    currentMusic: readonly(currentMusic),
+    isVisible: readonly(isVisible),
+    isPlaying: readonly(isPlaying),
     play,
     toggleVisible,
     togglePlaying

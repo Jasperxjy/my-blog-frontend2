@@ -62,7 +62,7 @@ const fetchAlbums = async () => {
     const result = await albumApi.getAllAlbums()
     console.log('获取相册结果:', result)
     if (result.success && result.data) {
-      const allAlbums = result.data as Album[]
+      const allAlbums = result.data
 
       // 管理员可以看到所有相册
       if (userStore.isAdmin) {
@@ -100,7 +100,7 @@ const selectAlbum = async (album: Album) => {
   try {
     const result = await imageApi.getImagesByAlbum(album.albumId)
     if (result.success && result.data) {
-      images.value = result.data as Image[]
+      images.value = result.data
     }
   } catch {
     showError('获取图片列表失败')
@@ -128,7 +128,7 @@ const saveEdit = async () => {
 
     if (result.success && result.data) {
       showSuccess('更新成功')
-      const updatedImage = result.data as Image
+      const updatedImage = result.data
       const index = images.value.findIndex(img => img.imageId === editingImage.value?.imageId)
       if (index !== -1) {
         images.value[index] = updatedImage
@@ -199,7 +199,11 @@ const saveNewAlbum = async () => {
     })
 
     if (result.success && result.data) {
-      const album = result.data as Album
+      const album = result.data
+      if (!album.albumId) {
+        showError('创建相册失败')
+        return
+      }
       const permissionResult = await permissionApi.setPermission(
         album.albumId,
         selectedPermission.value

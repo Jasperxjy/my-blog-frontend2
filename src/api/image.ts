@@ -7,7 +7,7 @@ import type { Image } from '@/types/image'
  * @param albumId - 相册ID
  * @returns Promise<Result> - 图片列表
  */
-export async function getImagesByAlbum(albumId: string): Promise<Result> {
+export async function getImagesByAlbum(albumId: string): Promise<Result<Image[]>> {
   return request(`/api/image/album/${albumId}`, {
     method: 'GET'
   })
@@ -22,7 +22,7 @@ export async function getImagesByAlbum(albumId: string): Promise<Result> {
 export async function updateImage(
   imageId: string,
   data: Partial<Omit<Image, 'imageId' | 'updateTime'>>
-): Promise<Result> {
+): Promise<Result<Image>> {
   return request(`/api/image/${imageId}/update`, {
     method: 'PUT',
     data
@@ -51,7 +51,7 @@ export async function uploadImage(
   file: File,
   albumId?: string,
   description?: string
-): Promise<Result> {
+): Promise<Result<Image>> {
   const formData = new FormData()
   formData.append('file', file)
   if (albumId) formData.append('albumId', albumId)
@@ -69,7 +69,7 @@ export async function uploadImage(
 export async function uploadFileImage(
   file: File,
   essayId?: string,
-): Promise<Result> {
+): Promise<Result<Image>> {
   const formData = new FormData()
   formData.append('file', file)
   if (essayId) formData.append('essayId', essayId)

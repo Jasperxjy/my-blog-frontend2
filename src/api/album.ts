@@ -6,7 +6,7 @@ import type { Album } from '@/types/album'
  * 获取所有相册
  * @returns Promise<Result> - 相册列表
  */
-export async function getAllAlbums(): Promise<Result> {
+export async function getAllAlbums(): Promise<Result<Album[]>> {
   return request('/api/album', {
     method: 'GET'
   })
@@ -17,7 +17,7 @@ export async function getAllAlbums(): Promise<Result> {
  * @param data - 相册信息
  * @returns Promise<Result> - 创建结果
  */
-export async function createAlbum(data: Album): Promise<Result> {
+export async function createAlbum(data: Album): Promise<Result<Album>> {
   return request('/api/album', {
     method: 'POST',
     data
@@ -30,7 +30,7 @@ export async function createAlbum(data: Album): Promise<Result> {
  * @param data - 相册信息
  * @returns Promise<Result> - 更新结果
  */
-export async function updateAlbum(id: string, data: Album): Promise<Result> {
+export async function updateAlbum(id: string, data: Album): Promise<Result<Album>> {
   return request(`/api/album/${id}`, {
     method: 'PUT',
     data

@@ -2,7 +2,7 @@ import type { Music } from '@/types/music'
 import { request } from '@/utils/request'
 import type { Result } from '@/types/common'
 
-export async function getAllMusic(): Promise<Result> {
+export async function getAllMusic(): Promise<Result<Music[]>> {
   return request('/api/music/all', {
     method: 'GET'
   })

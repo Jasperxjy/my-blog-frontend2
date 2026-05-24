@@ -44,6 +44,12 @@ service.interceptors.response.use(
     return response
   },
   (error) => {
+    const userStore = useUserStore()
+    if (error.response?.status === 401) {
+      userStore.clearUser()
+      window.location.href = '/login'
+      return Promise.reject(new Error('登录已过期，请重新登录'))
+    }
     return Promise.reject(error)
   },
 )

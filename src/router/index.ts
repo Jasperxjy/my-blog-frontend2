@@ -99,28 +99,25 @@ const router = createRouter({
 })
 
 // 全局路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   // 检查用户是否已登录
   const isAuthenticated = useUserStore().token
-  const currentEssay = JSON.parse(localStorage.getItem('currentEssay') || 'null');
-  const currentTags = JSON.parse(localStorage.getItem('currentTags') || 'null');
   // 需要登录但未登录，跳转到登录页
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-    return
+    return { path: '/login' }
   }
   // 已登录用户访问登录页，跳转到首页
   if (to.path === '/login' && isAuthenticated) {
-    next('/home')
-    return
+    return { path: '/home' }
   }
   // 编辑页需要 localStorage 中的文章数据
-  if (!currentEssay && !currentTags && to.name === 'essayEdit') {
-    next({ name: 'articles' })
-    return
+  if (to.name === 'essayEdit') {
+    const currentEssay = JSON.parse(localStorage.getItem('currentEssay') || 'null')
+    const currentTags = JSON.parse(localStorage.getItem('currentTags') || 'null')
+    if (!currentEssay || !currentTags) {
+      return { name: 'articles' }
+    }
   }
-  // 其他情况正常跳转
-  next()
 })
 
 export default router
