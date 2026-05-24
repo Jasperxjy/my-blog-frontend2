@@ -404,14 +404,16 @@ onMounted(async () => {
         </el-button-group>
       </div>
 
-      <!-- 管理员可见：显示已删除文章切换开关 -->
+      <!-- 管理员可见：显示已删除文章切换（右下角浮动，简洁胶囊按钮） -->
       <div v-if="userStore.isAdmin" class="deleted-toggle">
-        <el-switch
-          v-model="showDeletedEssays"
-          active-text="显示已删除"
-          inactive-text="隐藏已删除"
-          @change="applyEssayFilter"
-        />
+        <el-button
+          :type="showDeletedEssays ? 'info' : 'default'"
+          size="small"
+          round
+          @click="showDeletedEssays = !showDeletedEssays; applyEssayFilter()"
+        >
+          {{ showDeletedEssays ? '隐藏已删' : '显示已删' }}
+        </el-button>
       </div>
 
       <div v-if="currentEssays.length === 0" class="empty-state">
@@ -612,11 +614,10 @@ onMounted(async () => {
 }
 
 .deleted-toggle {
-  width: 100%;
-  max-width: 1200px;
-  padding: 0 1rem 1rem;
-  display: flex;
-  justify-content: flex-end;
+  position: fixed;
+  bottom: 2rem;
+  right: 8rem;
+  z-index: 100;
   line-height: 1.6;
   text-align: center;
   font-weight: 300;
