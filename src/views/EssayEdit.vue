@@ -196,7 +196,11 @@ const handleEndEdit = async () => {
   try {
     // 立即保存所有内容
     if (currentEssay.value) {
-      await updateEssay(currentEssay.value.essayId, currentEssay.value)
+      const updateResult = await updateEssay(currentEssay.value.essayId, currentEssay.value)
+      if (!updateResult.success) {
+        ElMessage.error(updateResult.errorMsg || '保存文章失败')
+        return
+      }
     }
 
     // 调用解锁接口
@@ -208,6 +212,8 @@ const handleEndEdit = async () => {
     if (result.success) {
       ElMessage.success('文章已解锁并保存')
       window.close() // 关闭当前窗口
+    } else {
+      ElMessage.error(result.errorMsg || '结束编辑失败')
     }
   } catch (error) {
     ElMessage.error('结束编辑失败')
