@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { UserRole } from '@/utils/permission'
 import type { Collection, EssayBrief ,Essay} from '@/types/essay'
 import { useUserStore } from '@/stores/user'
-import { getCollections, getEssayBriefs, createCollection, updateCollection, deleteCollection } from '@/api/essay'
+import { getCollections, getEssayBriefs, createCollection, updateCollection, deleteCollection, deleteEssay } from '@/api/essay'
 import { setPermission, hasPermission } from '@/api/permission'
 import { Plus, Edit, Delete, Setting } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -288,6 +288,32 @@ const handleEssayClick = (essay: EssayBrief) => {
   })
 }
 
+// 删除文章
+const handleDeleteEssay = async (essay: EssayBrief) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除这篇文章吗？删除后文章将标记为已删除状态。',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    const result = await deleteEssay(essay.essayId)
+    if (result.success) {
+      ElMessage.success('删除成功')
+      await fetchEssays(selectedCollectionId.value)
+    } else {
+      ElMessage.error(result.errorMsg || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
 onMounted(async () => {
   await fetchCollections()
   // 尝试恢复之前选择的合集
@@ -380,7 +406,7 @@ onMounted(async () => {
           @click="handleEssayClick(essay)"
         >
           <div class="essay-title">{{ essay.essayTitle }}</div>
-          <!-- 管理员可见的状态标签 -->
+          <!-- 管理员可见的状态标签和删除按钮 -->
           <el-tag
             v-if="userStore.isAdmin"
             :type="statusConfig[essay.status].type"
@@ -389,6 +415,16 @@ onMounted(async () => {
           >
             {{ statusConfig[essay.status].label }}
           </el-tag>
+          <el-button
+            v-if="userStore.isAdmin"
+            link
+            type="danger"
+            size="small"
+            class="delete-essay-btn"
+            @click.stop="handleDeleteEssay(essay)"
+          >
+            <el-icon><Delete /></el-icon>
+          </el-button>
         </div>
       </div>
       <div v-if="userStore.isAdmin" class="add-essay-button">
@@ -601,7 +637,13 @@ onMounted(async () => {
 .status-tag {
   position: absolute;
   bottom: 8px;
-  right: 8px;
+  left: 8px;
+}
+
+.delete-essay-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
 }
 
 .essay-card:hover {

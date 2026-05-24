@@ -2,9 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Essay, EssayTag, EssayBrief, Note } from '@/types/essay'
-import { getEssayView, getEssayEdit, getEssayTags, getEssayNotes,addNote, startEditEssay, updateEssayContext, endEditEssay } from '@/api/essay'
+import { getEssayView, getEssayEdit, getEssayTags, getEssayNotes,addNote, startEditEssay, updateEssayContext, endEditEssay, deleteEssay } from '@/api/essay'
 import CommentSection from '@/components/CommentSection.vue'
 // 替换原有导入
 import ArticleEditor from '@/components/ArticleEditor.vue'
@@ -167,6 +167,33 @@ const handleCloseAnnotation = async () => {
   selectedAnnotation.value.id = ''
 }
 
+// 删除文章方法
+const handleDeleteEssay = async () => {
+  if (!currentEssay.value) return
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除这篇文章吗？删除后文章将标记为已删除状态。',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    const result = await deleteEssay(currentEssay.value.essayId)
+    if (result.success) {
+      ElMessage.success('删除成功')
+      router.push({ name: 'articles' })
+    } else {
+      ElMessage.error(result.errorMsg || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
 // 编辑文章方法
 const editEssay = (essay: Essay, tags: EssayTag[]) => {
   if (essay) {
@@ -225,9 +252,10 @@ const editEssay = (essay: Essay, tags: EssayTag[]) => {
                   </div>
                 </div>
 
-                <!-- 编辑按钮，仅管理员可见 -->
+                <!-- 编辑和删除按钮，仅管理员可见 -->
                 <div v-if="userStore.isAdmin" class="edit-button">
                   <el-button type="primary" @click="editEssay(currentEssay, essayTags)">编辑</el-button>
+                  <el-button type="danger" @click="handleDeleteEssay">删除</el-button>
                 </div>
 
                 <!-- 统计数字保持不变 -->

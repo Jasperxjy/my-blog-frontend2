@@ -233,3 +233,14 @@ export async function removeTagFromEssayAPI(params: {
     params
   })
 }
+
+/**
+ * 删除文章（软删除，仅管理员）
+ * @param essayId - 文章ID
+ * @returns Promise<Result> - 删除结果
+ */
+export async function deleteEssay(essayId: string): Promise<Result> {
+  return request(`/api/essay/${essayId}/del`, {
+    method: 'DELETE'
+  })
+}
