@@ -135,35 +135,37 @@ const showNewAnnotationInput = () => {
 .annotation-panel {
   position: absolute;
   width: 100%;
-  background: white;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  z-index: 1001; /* 确保在评论组件之上 */
-  pointer-events: auto; /* 恢复面板的点击事件 */
-  transition: top 0.3s ease;
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  z-index: 1001;
+  pointer-events: auto;
+  transition: top var(--duration-normal) var(--ease-out);
 }
 
 .create-annotation-button {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1001; /* 确保在评论组件之上 */
-  pointer-events: auto; /* 恢复按钮的点击事件 */
+  bottom: var(--space-5);
+  right: var(--space-5);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  z-index: 1001;
+  pointer-events: auto;
 }
 
 .note-card {
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .note-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .close-btn {
@@ -171,36 +173,42 @@ const showNewAnnotationInput = () => {
   border: none;
   font-size: 20px;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 0 var(--space-2);
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.close-btn:hover {
+  color: var(--color-accent);
 }
 
 .edit-area {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .edit-buttons {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   justify-content: flex-end;
 }
 
 .note-content {
-  line-height: 1.6;
-  color: #333;
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
   white-space: pre-wrap;
 }
 
 .note-footer {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #666;
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
 }
 
 .no-notes {
-  padding: 16px;
+  padding: var(--space-4);
   text-align: center;
-  color: #999;
+  color: var(--color-text-tertiary);
 }
 
 /* 新增过渡动画 */
@@ -227,5 +235,41 @@ const showNewAnnotationInput = () => {
   bottom: 100px; /* 根据按钮位置调整 */
   width: 300px;
   z-index: 1002; /* 确保在批注面板之上 */
+}
+
+/* 移动端适配：底部抽屉模式 */
+@media (max-width: 768px) {
+  .annotation-container {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+  }
+
+  .annotation-panel {
+    position: relative;
+    top: auto !important;
+    width: 100%;
+    z-index: auto;
+    margin: var(--space-4) 0;
+    border-radius: var(--radius-md);
+  }
+
+  .create-annotation-button {
+    position: fixed;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    z-index: 90;
+    padding: var(--space-3);
+  }
+
+  .new-annotation-input {
+    left: 20px;
+    right: 20px;
+    width: auto;
+    bottom: 80px;
+    z-index: 90;
+  }
 }
 </style>

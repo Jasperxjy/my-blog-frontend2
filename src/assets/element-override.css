@@ -1,0 +1,218 @@
+/* ============================================================
+   Element Plus 主题覆盖
+   将 Element Plus 默认的亮蓝色系替换为温润朱砂红系
+   统一 danger/warning/success/info 为设计系统配色
+   ============================================================ */
+
+:root {
+  /* Primary: 朱砂红 */
+  --el-color-primary: #c45c48;
+  --el-color-primary-light-3: #d97a68;
+  --el-color-primary-light-5: #e8a898;
+  --el-color-primary-light-7: #f5d5ce;
+  --el-color-primary-light-8: #f9e8e4;
+  --el-color-primary-light-9: #fdf5f3;
+  --el-color-primary-dark-2: #a84938;
+
+  /* Danger: 暗红 */
+  --el-color-danger: #c94848;
+  --el-color-danger-light-3: #d28b8b;
+  --el-color-danger-light-5: #deb3b3;
+  --el-color-danger-light-7: #ecd8d8;
+  --el-color-danger-light-8: #f3eaea;
+  --el-color-danger-light-9: #fcf5f5;
+  --el-color-danger-dark-2: #b12d2d;
+
+  /* Warning: 琥珀 */
+  --el-color-warning: #c9903a;
+  --el-color-warning-light-3: #d1b07f;
+  --el-color-warning-light-5: #dbc7a7;
+  --el-color-warning-light-7: #e8ddcd;
+  --el-color-warning-light-8: #efe9e0;
+  --el-color-warning-light-9: #f7f5f1;
+  --el-color-warning-dark-2: #a87528;
+
+  /* Success: 墨绿 */
+  --el-color-success: #3a8a5f;
+  --el-color-success-light-3: #64ad86;
+  --el-color-success-light-5: #8abaa0;
+  --el-color-success-light-7: #adc9ba;
+  --el-color-success-light-8: #bfd1c7;
+  --el-color-success-light-9: #d0d9d4;
+  --el-color-success-dark-2: #276a46;
+
+  /* Info: 灰蓝 */
+  --el-color-info: #4a7a9a;
+  --el-color-info-light-3: #7e9db2;
+  --el-color-info-light-5: #a2b5c1;
+  --el-color-info-light-7: #c3cdd3;
+  --el-color-info-light-8: #d4d9dc;
+  --el-color-info-light-9: #e3e5e6;
+  --el-color-info-dark-2: #35607c;
+
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 6px;
+  --el-box-shadow-light: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --el-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --el-box-shadow-dark: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  /* 覆盖 Element 的默认字体 */
+  --el-font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+}
+
+/* Element Plus 组件级微调 */
+
+/* 按钮：增加微交互 */
+.el-button {
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out) !important;
+}
+
+.el-button:not(.is-disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.el-button:not(.is-disabled):active {
+  transform: translateY(0);
+}
+
+/* 卡片：更精致的阴影 */
+.el-card {
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow var(--duration-normal) var(--ease-out),
+              transform var(--duration-normal) var(--ease-out) !important;
+}
+
+.el-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* 输入框：聚焦时 accent 色边框 */
+.el-input__wrapper {
+  transition: box-shadow var(--duration-fast) var(--ease-out) !important;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 3px var(--color-accent-subtle) !important;
+}
+
+/* 表格 */
+.el-table {
+  --el-table-border-color: var(--color-border) !important;
+  --el-table-header-bg-color: var(--color-bg-page) !important;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* 对话框 */
+.el-dialog {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+/* 消息提示 */
+.el-message {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* 标签 */
+.el-tag {
+  border-radius: var(--radius-full) !important;
+  font-size: var(--text-xs) !important;
+}
+
+/* 标签: 更协调的配色 */
+.el-tag--success {
+  --el-tag-bg-color: var(--el-color-success-light-9) !important;
+  --el-tag-border-color: var(--el-color-success-light-5) !important;
+  --el-tag-text-color: var(--el-color-success-dark-2) !important;
+}
+
+.el-tag--warning {
+  --el-tag-bg-color: var(--el-color-warning-light-9) !important;
+  --el-tag-border-color: var(--el-color-warning-light-5) !important;
+  --el-tag-text-color: var(--el-color-warning-dark-2) !important;
+}
+
+.el-tag--danger {
+  --el-tag-bg-color: var(--el-color-danger-light-9) !important;
+  --el-tag-border-color: var(--el-color-danger-light-5) !important;
+  --el-tag-text-color: var(--el-color-danger-dark-2) !important;
+}
+
+.el-tag--info {
+  --el-tag-bg-color: var(--el-color-info-light-9) !important;
+  --el-tag-border-color: var(--el-color-info-light-5) !important;
+  --el-tag-text-color: var(--el-color-info-dark-2) !important;
+}
+
+/* 按钮组: 统一圆角和间距 */
+.el-button-group .el-button {
+  border-radius: 0 !important;
+}
+
+.el-button-group .el-button:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm) !important;
+}
+
+.el-button-group .el-button:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+}
+
+.el-button-group .el-button:first-child:last-child {
+  border-radius: var(--radius-sm) !important;
+}
+
+/* 分页 */
+.el-pagination .el-pager li {
+  border-radius: var(--radius-sm) !important;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out) !important;
+}
+
+/* 上传组件 */
+.el-upload .el-button {
+  border-radius: var(--radius-md) !important;
+}
+
+/* 滑块: accent 色 */
+.el-slider__bar {
+  background-color: var(--color-accent) !important;
+}
+
+.el-slider__button {
+  border-color: var(--color-accent) !important;
+}
+
+/* 下拉菜单/选择器 */
+.el-select-dropdown__item.selected {
+  color: var(--color-accent) !important;
+}
+
+/* 菜单项激活 */
+.el-menu-item.is-active {
+  color: var(--color-accent) !important;
+}
+
+/* 步骤条 */
+.el-step__head.is-finish {
+  color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+}
+
+.el-step__title.is-finish {
+  color: var(--color-accent) !important;
+}
+
+/* 移动端 Dialog 宽度适配 */
+@media (max-width: 768px) {
+  .el-dialog {
+    width: 92% !important;
+    margin: 8vh auto 0 !important;
+  }
+}

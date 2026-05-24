@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -9,6 +9,7 @@ import CommentSection from '@/components/CommentSection.vue'
 // 替换原有导入
 import ArticleEditor from '@/components/ArticleEditor.vue'
 import AnnotationPanel from '@/components/AnnotationPanel.vue'
+import ScrollToButtons from '@/components/ScrollToButtons.vue'
 
 
 const route = useRoute()
@@ -74,6 +75,36 @@ const fetchEssayContent = async (essayId: string) => {
     loading.value = false
   }
 }
+
+// 代码块复制按钮
+const setupCodeCopy = () => {
+  nextTick(() => {
+    const pres = document.querySelectorAll('.essay-content pre')
+    pres.forEach((pre) => {
+      if (pre.querySelector('.code-copy-btn')) return
+      const btn = document.createElement('button')
+      btn.className = 'code-copy-btn'
+      btn.textContent = '复制'
+      btn.onclick = () => {
+        const code = pre.querySelector('code')
+        const text = code?.textContent || ''
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = '已复制'
+          btn.classList.add('copied')
+          setTimeout(() => {
+            btn.textContent = '复制'
+            btn.classList.remove('copied')
+          }, 2000)
+        })
+      }
+      pre.appendChild(btn)
+    })
+  })
+}
+
+watch(currentEssay, () => {
+  if (currentEssay.value) setupCodeCopy()
+})
 
 // 初始化文章列表
 onMounted(() => {
@@ -300,10 +331,11 @@ const editEssay = (essay: Essay, tags: EssayTag[]) => {
               @create-note="handleCreateNote"/>
 
             <!-- 添加评论组件 -->
-            <comment-section v-if="currentEssay" :essay-id="currentEssay.essayId" />
+            <comment-section v-if="currentEssay" :key="currentEssay.essayId" :essay-id="currentEssay.essayId" />
           </div>
         </template>
       </el-skeleton>
+      <scroll-to-buttons mode="sticky" />
     </div>
     
   </div>
@@ -312,170 +344,253 @@ const editEssay = (essay: Essay, tags: EssayTag[]) => {
 <style scoped>
 .essay-view {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 20px;
-  padding: 20px;
-  max-width: 1800px;
-  margin: 0 auto;
+  grid-template-columns: minmax(200px, 1fr) minmax(auto, 900px) minmax(200px, 1fr);
+  gap: 0;
+  padding: var(--space-6);
   min-height: 100vh;
 }
 
 .essay-list {
+  justify-self: end;
+  width: 100%;
+  max-width: 280px;
   position: sticky;
-  top: 20px;
-  height: calc(100vh - 40px);
+  top: 80px;
+  height: calc(100vh - 100px);
   overflow-y: auto;
-  padding-right: 20px;
-  border-right: 1px solid #e6e9ed;
+  padding-right: var(--space-5);
+  border-right: 1px solid var(--color-border);
 }
 
 .essay-item {
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: 6px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-fast) var(--ease-out);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }
 
 .essay-item:hover {
-  background-color: #f5f7fa;
+  background-color: var(--color-accent-subtle);
 }
 
 .essay-item.active {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  font-weight: 600;
 }
 
 .essay-content {
-  flex: 1;
   width: 100%;
-  padding-right: 320px;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 中等屏幕：两列布局 */
+@media (max-width: 1100px) and (min-width: 769px) {
+  .essay-view {
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .essay-list {
+    justify-self: start;
+    max-width: none;
+    width: 280px;
+  }
+
+  .essay-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .essay-view {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .essay-list {
+    position: relative;
+    top: 0;
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-right: 0;
+    padding-bottom: var(--space-4);
+    justify-self: start;
+    max-width: none;
+    width: 100%;
+  }
+
+  .essay-content {
+    max-width: none;
+    margin: 0;
+  }
+
+  .essay-header h1 {
+    font-size: var(--text-2xl);
+  }
 }
 
 .essay-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #ebeef5;
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.essay-header h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-tight);
 }
 
 .essay-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin: 1rem 0;
-  color: #909399;
-  font-size: 0.9rem;
   align-items: flex-start;
-
+  margin: var(--space-4) 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
 }
 
 .essay-type {
-  margin-right: 1rem;
-  padding: 0.2rem 0.5rem;
-  background-color: #f0f2f5;
-  border-radius: 4px;
+  margin-right: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 500;
 }
 
 .essay-info {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  color: #606266;
-  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .tags-row {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
   width: 100%;
 }
 
 .version {
-  font-family: monospace;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
 }
 
 .tags-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .essay-tag {
   margin: 0;
-  font-size: 0.85rem;
-  background-color: #f0f4ff;
-  color: #3366ff;
-  border-radius: 4px;
-}
-
-.tags-row {
-
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
 }
 
 .stats-numbers {
   display: flex;
-  gap: 1rem;
-  color: #606266;
-  font-size: 0.9rem;
+  gap: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 
 .meta-row {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
 .type {
-
-  font-size: 1.1rem;
-
+  font-size: var(--text-base);
 }
 
 .annotation-container {
   annotation {
     display: inline-block;
-    background-color: #fff3d8;
+    background-color: var(--color-accent-subtle);
     padding: 2px 4px;
     border-radius: 3px;
-    border: 1px solid #ffd799;
+    border: 1px solid var(--color-accent-light);
     line-height: normal;
     vertical-align: baseline;
   }
 
-  /* 补充现代浏览器对自定义标签的支持 */
   annotation:defined {
     display: inline;
   }
 }
 
 .essay-container {
-  padding: 20px;
+  padding: var(--space-5);
   max-width: 1200px;
   margin: 0 auto;
 
-  /* 新增以下规则 */
   :deep(.tiptap) {
-    padding: 1rem;
+    padding: var(--space-4);
     min-height: 300px;
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-primary);
+  }
+
+  :deep(.tiptap p) {
+    margin-bottom: var(--space-4);
+  }
+
+  :deep(.tiptap blockquote) {
+    border-left: 3px solid var(--color-accent);
+    padding-left: var(--space-4);
+    margin: var(--space-5) 0;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    background: var(--color-accent-subtle);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  :deep(.tiptap img) {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    max-width: 100%;
+    height: auto;
   }
 
   :deep(.menu-bar) {
     display: none;
-    /* 隐藏只读模式的菜单栏 */
   }
+
 }
 
-/* 添加样式以调整编辑按钮的位置 */
 .edit-button {
-  margin-left: auto; /* 将按钮推到右侧 */
+  margin-left: auto;
 }
 </style>

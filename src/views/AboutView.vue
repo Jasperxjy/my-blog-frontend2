@@ -103,47 +103,67 @@
 /* 保持原有布局样式不变 */
 .content {
   flex: 1;
-  padding: 2rem;
+  padding: var(--space-8) var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
-/* 新增样式 */
+.content h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-8);
+  text-align: center;
+  font-weight: 700;
+}
+
 .guide-section {
-  margin-top: 2rem;
+  margin-top: var(--space-6);
 }
 
 .feature-card {
-  margin-bottom: 1.5rem;
-  transition: transform 0.3s ease;
+  margin-bottom: var(--space-5);
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+  border: 1px solid var(--color-border);
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.1rem;
-  font-weight: 500;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.card-header .el-icon {
+  color: var(--color-accent);
 }
 
 .feature-list {
-  line-height: 1.8;
-  padding-left: 1.2rem;
+  line-height: var(--leading-relaxed);
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
 }
 
 .feature-list li {
-  margin: 0.8rem 0;
+  margin: var(--space-3) 0;
+  font-size: var(--text-sm);
 }
 
 .permission-section {
-  margin-top: 3rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  margin-top: var(--space-10);
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
 }
 
 </style>

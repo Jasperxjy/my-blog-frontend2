@@ -51,21 +51,19 @@ defineExpose({
 
 <style scoped>
 .new-annotation-input {
-  margin-top: 1rem;
-  background: white; /* 新增背景 */
-  padding: 16px;    /* 新增内边距 */
-  border-radius: 8px; /* 新增圆角 */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15); /* 新增阴影 */
-  z-index: 1002; /* 确保在最顶层 */
+  margin-top: var(--space-4);
+  background: var(--color-bg-surface);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  z-index: 1002;
 }
 
 .input-buttons {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-.cancel-btn {
-  margin-right: 0.5rem;
+  margin-top: var(--space-3);
+  gap: var(--space-2);
 }
 </style>

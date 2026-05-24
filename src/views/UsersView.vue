@@ -107,73 +107,80 @@ onMounted(() => {
 .users-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--space-8) var(--space-6);
 }
 
 h2 {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 2rem;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-8);
   text-align: center;
+  font-weight: 700;
 }
 
 .users-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: var(--space-5);
 }
 
 .user-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
 }
 
 .user-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .user-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .user-header h3 {
   margin: 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  font-weight: 600;
 }
 
 .status-badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  background-color: #4caf50;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  background-color: var(--color-success);
   color: white;
+  font-weight: 500;
 }
 
 .status-disabled {
-  background-color: #f44336;
+  background-color: var(--color-error);
 }
 
 .user-info {
-  font-size: 0.95rem;
-  color: #666;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }
 
 .user-info p {
-  margin: 0.5rem 0;
-  line-height: 1.5;
+  margin: var(--space-2) 0;
+  line-height: var(--leading-normal);
 }
 
 .user-info strong {
-  color: #2c3e50;
+  color: var(--color-text-primary);
 }
 
 .status-control {
@@ -182,17 +189,29 @@ h2 {
 }
 
 .status-select {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  border: 1px solid #ddd;
-  background-color: white;
-  color: #2c3e50;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border-strong);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
   cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 .status-select:focus {
   outline: none;
-  border-color: #4caf50;
+  border-color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  .users-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .user-card {
+    padding: var(--space-4);
+  }
 }
 </style>

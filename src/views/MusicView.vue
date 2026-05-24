@@ -364,43 +364,51 @@ onMounted(() => {
 <style scoped>
 
 .music-container {
-  max-width: 1200px;  /* 限制最大宽度 */
-  margin: 0 auto;     /* 居中显示 */
-  padding: 20px 40px; /* 增加左右内边距 */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-8);
 }
 
 .music-header {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-8);
   text-align: center;
 }
 
 .title {
-  color: #303133;
-  margin-bottom: 12px;
-  font-size: 50px;
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-4xl);
+  font-weight: 700;
 }
 
 .description {
-  color: #606266;
-  margin-bottom: 8px;
-  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-base);
 }
 
 .guide {
-  color: #909399;
-  font-size: 14px;
-  line-height: 1.5;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
 }
 
 .music-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin: 0 auto;     /* 确保网格居中 */
+  gap: var(--space-5);
+  margin: 0 auto;
 }
 
 .music-card {
   height: 220px;
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.music-card:hover {
+  transform: translateY(-4px);
 }
 
 .music-card :deep(.el-card__body) {
@@ -413,15 +421,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 15px;
+  padding: var(--space-4);
 }
 
 .music-icon {
   display: flex;
   justify-content: center;
-  margin: 12px 0;
-  color: #409EFF;
+  margin: var(--space-3) 0;
+  color: var(--color-accent);
   cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.music-icon:hover {
+  transform: scale(1.1);
 }
 
 .music-icon .el-icon {
@@ -429,19 +442,21 @@ onMounted(() => {
 }
 
 .music-title {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+  color: var(--color-text-primary);
 }
 
 .music-desc {
   margin: 0;
-  color: #666;
-  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -454,36 +469,62 @@ onMounted(() => {
 
 .music-actions {
   margin-top: auto;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
   display: flex;
   justify-content: center;
   width: 100%;
+  gap: var(--space-1);
 }
 
-.music-actions .el-button {
-  padding: 8px;
+.music-actions :deep(.el-button) {
+  --el-button-size: 32px;
+  padding: 6px;
+}
+
+.music-actions :deep(.el-button .el-icon) {
+  font-size: 16px;
 }
 
 .music-detail {
-  padding: 20px;
+  padding: var(--space-5);
 }
 
 .detail-desc {
-  margin-top: 16px;
-  color: #666;
-  line-height: 1.6;
+  margin-top: var(--space-4);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
   white-space: pre-wrap;
 }
 
 .upload-section {
-  margin: 20px 0;
+  margin: var(--space-5) 0;
   display: flex;
   justify-content: flex-end;
 }
 
+.upload-section :deep(.el-button) {
+  box-shadow: var(--shadow-sm);
+}
+
+.upload-section :deep(.el-button:hover) {
+  box-shadow: var(--shadow-md);
+}
+
 .permission-control {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   align-items: center;
+}
+
+@media (max-width: 768px) {
+  .music-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .music-card {
+    height: auto;
+    min-height: 180px;
+  }
 }
 </style>

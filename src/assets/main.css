@@ -1,21 +1,70 @@
 @import './base.css';
+@import './element-override.css';
+@import './dark.css';
+@import './animations.css';
+
+/* ============================================================
+   App 根容器样式
+   ============================================================ */
 
 #app {
-  max-width: 100%;
-  margin: 0 auto;
-  font-weight: normal;
+  min-height: 100vh;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a,
-.green {
+/* 基础链接样式 */
+a {
+  color: var(--color-accent);
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* 滚动条美化 — 移动端隐藏，桌面端极细 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* 暗色模式滚动条 */
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 触摸设备隐藏滚动条 */
+@media (hover: none) and (pointer: coarse) {
+  ::-webkit-scrollbar {
+    display: none;
   }
+}
+
+/* 选中文字样式 */
+::selection {
+  background: var(--color-accent-subtle);
+  color: var(--color-text-primary);
 }

@@ -1,8 +1,10 @@
-import './assets/main.css'
-import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
+import './assets/main.css'
+import './assets/code-theme.css'
 import '@fontsource/fira-code/400.css'
 import '@fontsource/fira-code/500.css'
+import ElementPlus from 'element-plus'
 import { createApp } from 'vue'
 //导入pinia
 import { createPinia } from 'pinia'

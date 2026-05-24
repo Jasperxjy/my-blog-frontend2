@@ -258,79 +258,96 @@ watch(() => props.essayId, (newId, oldId) => {
 
 <style scoped>
 .comment-section {
-  margin-top: 2rem;
-  padding: 1rem;
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
 }
 
 .comment-input {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
 }
 
 .reply-indicator {
-  margin-bottom: 0.5rem;
-  color: #666;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
 }
 
 .comment-item {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 1px solid #eee;
-  border-radius: 4px;
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.comment-item:hover {
+  box-shadow: var(--shadow-sm);
 }
 
 .comment-header {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .username {
-  font-weight: bold;
-  margin-right: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .time {
-  color: #999;
-  font-size: 0.9em;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
 }
 
 .comment-content {
-  margin: 0.5rem 0;
+  margin: var(--space-2) 0;
+  color: var(--color-text-primary);
+  line-height: var(--leading-normal);
 }
 
 .comment-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .replies {
-  margin-left: 2rem;
-  margin-top: 1rem;
+  margin-left: var(--space-8);
+  margin-top: var(--space-4);
 }
 
 .reply-item {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  background: #f9f9f9;
-  border-radius: 4px;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .delete-btn {
-  color: #ff4d4f;
+  color: var(--el-color-danger);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .delete-btn:hover {
-  color: #ff7875;
+  color: var(--el-color-danger-light-3);
 }
 
 .input-wrapper {
   position: relative;
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .submit-btn {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
+  bottom: var(--space-2);
+  right: var(--space-2);
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { Close, VideoPlay, VideoPause } from '@element-plus/icons-vue'
+import { Close, VideoPlay, VideoPause, Minus } from '@element-plus/icons-vue'
 import type { Music } from '@/types/music'
 import { MUSIC_BASE_URL } from '@/utils/constants'
 
@@ -204,10 +204,19 @@ onUnmounted(cleanup)
     <div v-if="!isMinimized" class="player-header">
       <span class="drag-handle">♫ 音乐播放器</span>
       <div class="header-controls">
-
+        <el-icon class="minimize-btn" @click.stop="isMinimized = true">
+          <Minus />
+        </el-icon>
         <el-icon class="close-btn" @click.stop="closePlayer">
           <Close />
         </el-icon>
+      </div>
+    </div>
+
+    <!-- 最小化状态 -->
+    <div v-else class="minimized" @click.stop="isMinimized = false">
+      <div class="minimized-content">
+        <el-icon :size="24"><VideoPlay v-if="!isPlaying" /><VideoPause v-else /></el-icon>
       </div>
     </div>
 
@@ -254,23 +263,38 @@ onUnmounted(cleanup)
 <style scoped>
 .music-player {
   position: fixed;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
   z-index: 1000;
   user-select: none;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.music-player:hover {
+  box-shadow: var(--shadow-xl);
 }
 
 .music-player:not(.minimized) {
-  width: 300px;
+  width: 320px;
 }
 
 .minimized {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: #409EFF;
+  background: var(--color-accent);
   cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.minimized:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
 }
 
 .minimized-content {
@@ -284,10 +308,10 @@ onUnmounted(cleanup)
 }
 
 .player-header {
-  padding: 12px;
-  background: #409EFF;
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
   color: white;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -296,59 +320,106 @@ onUnmounted(cleanup)
 
 .header-controls {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
+  align-items: center;
 }
 
 .minimize-btn,
 .close-btn {
   cursor: pointer;
-  font-size: 20px;
-  transition: color 0.2s;
+  font-size: 18px;
+  transition: all var(--duration-fast) var(--ease-out);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
 }
 
 .minimize-btn:hover,
 .close-btn:hover {
-  color: #f56c6c;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
 
 .drag-handle {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
 }
 
 .player-content {
-  padding: 16px;
+  padding: var(--space-5);
 }
 
 .music-info {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-4);
   text-align: center;
 }
 
 .music-name {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
 .progress-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
-.progress-bar .el-slider {
-  flex: 1;
+.progress-bar :deep(.el-slider__runway) {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--color-border-strong);
+}
+
+.progress-bar :deep(.el-slider__bar) {
+  background-color: var(--color-accent);
+  border-radius: 2px;
+}
+
+.progress-bar :deep(.el-slider__button) {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-accent);
+  background: var(--color-bg-surface);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.progress-bar :deep(.el-slider__button:hover) {
+  transform: scale(1.3);
 }
 
 .time {
-  font-size: 12px;
-  color: #666;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
   min-width: 40px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-3);
+}
+
+.controls :deep(.el-button) {
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.controls :deep(.el-button:hover) {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 </style>

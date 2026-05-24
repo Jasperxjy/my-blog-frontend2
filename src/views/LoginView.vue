@@ -318,64 +318,91 @@ const handleGuestLogin = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 40px 20px;
+  background: var(--color-bg-page);
+  padding: var(--space-10) var(--space-5);
+  position: relative;
+}
+
+/* 微妙的背景纹理 */
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c45c48' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .welcome-section {
   text-align: center;
-  margin-bottom: 50px;
-  color: #2c3e50;
+  margin-bottom: var(--space-10);
   width: 100%;
   max-width: 800px;
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-section h1 {
-  font-size: 3.5em;
-  margin-bottom: 20px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+  letter-spacing: 0.02em;
 }
 
 .welcome-section p {
-  font-size: 1.5em;
-  color: #34495e;
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  font-weight: 400;
 }
 
 .auth-container {
-  background: white;
-  padding: 50px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-surface);
+  padding: var(--space-10);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 520px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--color-border);
 }
 
 .auth-tabs {
   display: flex;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #eee;
+  margin-bottom: var(--space-6);
+  gap: var(--space-2);
 }
 
 .auth-tabs button {
   flex: 1;
-  padding: 12px 20px;
+  padding: var(--space-3) var(--space-4);
   border: none;
   background: none;
-  font-size: 1.1rem;
+  font-size: var(--text-base);
+  font-weight: 500;
   cursor: pointer;
-  color: #666;
-  transition: all 0.3s ease;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.auth-tabs button:hover {
+  color: var(--color-text-secondary);
+  background-color: var(--color-accent-subtle);
 }
 
 .auth-tabs button.active {
-  color: #3498db;
-  border-bottom: 2px solid #3498db;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  font-weight: 600;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .form-item {
@@ -385,35 +412,85 @@ const handleGuestLogin = async () => {
 .form-item input,
 .form-item select {
   width: 100%;
-  padding: 16px;
-  font-size: 1.1rem;
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--text-base);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.form-item input:focus,
+.form-item select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+}
+
+.form-item input::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 .username-hint {
   position: absolute;
   top: -20px;
   left: 0;
-  font-size: 12px;
-  color: #666;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
 }
 
-button {
+/* 提交按钮 */
+.auth-form button[type="submit"] {
   width: 100%;
-  padding: 16px;
-  font-size: 1.2rem;
+  padding: var(--space-4);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: white;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.auth-form button[type="submit"]:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-form button[type="submit"]:active {
+  transform: translateY(0);
 }
 
 .guest-login {
-  margin-top: 40px;
+  margin-top: var(--space-8);
   width: 100%;
   max-width: 520px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .guest-login button {
   width: auto;
   min-width: 200px;
-  padding: 14px 30px;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.guest-login button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
 }
 
 .loading-overlay {
@@ -422,35 +499,48 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--color-bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  color: #3498db;
+  font-size: var(--text-base);
+  color: var(--color-text-inverse);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .user-status {
   position: absolute;
   top: -20px;
   right: 0;
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background-color: #f0f0f0;
-  color: #666;
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-page);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
 }
 
 .user-status.not-exist {
-  background-color: #fff3f3;
-  color: #ff4d4f;
+  background-color: rgba(201, 72, 72, 0.08);
+  color: var(--color-error);
+  border-color: rgba(201, 72, 72, 0.15);
 }
 
 .user-name {
-  color: #1890ff;
-  margin-right: 8px;
-  font-weight: 500;
+  color: var(--color-accent);
+  margin-right: var(--space-2);
+  font-weight: 600;
 }
 
+/* 移动端 */
+@media (max-width: 640px) {
+  .welcome-section h1 {
+    font-size: var(--text-3xl);
+  }
 
+  .auth-container {
+    padding: var(--space-6);
+  }
+}
 </style>

@@ -1,0 +1,305 @@
+/* ============================================================
+   代码块语法高亮主题
+   亮色: GitHub-inspired  |  暗色: GitHub Dark / VS Code hybrid
+   通过 html.dark 自动切换
+   ============================================================ */
+
+/* --------------------------------------------------
+   代码块容器样式
+   -------------------------------------------------- */
+pre {
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 3rem 1.25rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: #f6f8fa;
+  color: #24292f;
+  border: 1px solid #d0d7de;
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  line-height: 1.6;
+  font-family: var(--font-mono);
+}
+
+html.dark pre {
+  background: #1a1d23;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+/* 语言标签 */
+pre[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #57606a;
+  background: #eaeef2;
+  border-bottom: 1px solid #d0d7de;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  font-family: var(--font-body);
+}
+
+html.dark pre[data-language]::before {
+  color: #8b949e;
+  background: #161b22;
+  border-bottom-color: #30363d;
+}
+
+/* code 元素 */
+code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+pre code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 行内代码 */
+:not(pre) > code {
+  padding: 0.2em 0.4em;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: 0.9em;
+}
+
+html.dark :not(pre) > code {
+  background: var(--color-bg-elevated);
+}
+
+/* 复制按钮 */
+.code-block-wrapper {
+  position: relative;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  color: #57606a;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  z-index: 2;
+}
+
+pre:hover .code-copy-btn,
+.code-copy-btn:focus {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  background: #d0d7de;
+  color: #24292f;
+}
+
+html.dark .code-copy-btn {
+  color: #8b949e;
+}
+
+html.dark .code-copy-btn:hover {
+  background: #30363d;
+  color: #c9d1d9;
+}
+
+.code-copy-btn.copied {
+  opacity: 1;
+  color: var(--color-success);
+}
+
+/* --------------------------------------------------
+   亮色主题 hljs 颜色 (GitHub-inspired)
+   -------------------------------------------------- */
+.hljs-comment,
+.hljs-quote {
+  color: #6e7781;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-operator,
+.hljs-selector-tag,
+.hljs-doctag {
+  color: #cf222e;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: #0a3069;
+}
+
+.hljs-number,
+.hljs-literal {
+  color: #0550ae;
+}
+
+.hljs-function .hljs-title,
+.hljs-title.function_ {
+  color: #8250df;
+}
+
+.hljs-class .hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__ {
+  color: #0550ae;
+}
+
+.hljs-built_in,
+.hljs-type {
+  color: #116329;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property {
+  color: #953800;
+}
+
+.hljs-params,
+.hljs-variable,
+.hljs-template-variable {
+  color: #24292f;
+}
+
+.hljs-meta,
+.hljs-meta-keyword,
+.hljs-meta-string {
+  color: #57606a;
+}
+
+.hljs-tag {
+  color: #116329;
+}
+
+.hljs-name {
+  color: #22863a;
+}
+
+.hljs-bullet,
+.hljs-symbol {
+  color: #0550ae;
+}
+
+.hljs-section,
+.hljs-strong {
+  font-weight: 600;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-deletion {
+  color: #82071e;
+  background: #ffebe9;
+}
+
+.hljs-link {
+  color: #0969da;
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------
+   暗色主题 hljs 颜色 (GitHub Dark / VS Code hybrid)
+   -------------------------------------------------- */
+html.dark .hljs-comment,
+html.dark .hljs-quote {
+  color: #8b949e;
+  font-style: italic;
+}
+
+html.dark .hljs-keyword,
+html.dark .hljs-operator,
+html.dark .hljs-selector-tag,
+html.dark .hljs-doctag {
+  color: #ff7b72;
+}
+
+html.dark .hljs-string,
+html.dark .hljs-regexp,
+html.dark .hljs-addition {
+  color: #a5d6ff;
+}
+
+html.dark .hljs-number,
+html.dark .hljs-literal {
+  color: #79c0ff;
+}
+
+html.dark .hljs-function .hljs-title,
+html.dark .hljs-title.function_ {
+  color: #d2a8ff;
+}
+
+html.dark .hljs-class .hljs-title,
+html.dark .hljs-title.class_,
+html.dark .hljs-title.class_.inherited__ {
+  color: #79c0ff;
+}
+
+html.dark .hljs-built_in,
+html.dark .hljs-type {
+  color: #7ee787;
+}
+
+html.dark .hljs-attr,
+html.dark .hljs-attribute,
+html.dark .hljs-property {
+  color: #ffa657;
+}
+
+html.dark .hljs-params,
+html.dark .hljs-variable,
+html.dark .hljs-template-variable {
+  color: #c9d1d9;
+}
+
+html.dark .hljs-meta,
+html.dark .hljs-meta-keyword,
+html.dark .hljs-meta-string {
+  color: #8b949e;
+}
+
+html.dark .hljs-tag {
+  color: #7ee787;
+}
+
+html.dark .hljs-name {
+  color: #7ee787;
+}
+
+html.dark .hljs-bullet,
+html.dark .hljs-symbol {
+  color: #79c0ff;
+}
+
+html.dark .hljs-deletion {
+  color: #ffdcd7;
+  background: #67060c;
+}
+
+html.dark .hljs-link {
+  color: #58a6ff;
+  text-decoration: underline;
+}

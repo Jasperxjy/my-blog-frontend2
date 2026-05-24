@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue';
@@ -16,6 +17,7 @@ import {
   endEditEssay
 } from '@/api/essay'
 import ArticleEditor from '@/components/ArticleEditor.vue'
+import ScrollToButtons from '@/components/ScrollToButtons.vue'
 
 
 
@@ -29,6 +31,7 @@ const newTagName = ref('')
 const selectedTags = ref<string[]>([])
 const autoSaveTimeout = ref<number | null>(null)
 const lastSavedContent = ref('')
+const router = useRouter()
 const userStore = useUserStore()
 const articleEditorRef = ref<InstanceType<typeof ArticleEditor> | null>(null)
 
@@ -218,7 +221,10 @@ const handleEndEdit = async () => {
 
     if (result.success) {
       ElMessage.success('文章已解锁并保存')
-      window.close() // 关闭当前窗口
+      router.push({
+        name: 'essay',
+        params: { id: currentEssay.value.essayId }
+      })
     } else {
       ElMessage.error(result.errorMsg || '结束编辑失败')
     }
@@ -279,15 +285,13 @@ const currentEssayClassId = computed({
 </script>
 
 <template>
-  <div class="essay-edit" style="max-width: 70rem; margin: 40px auto 0;">
+  <div class="essay-edit">
     <div class="header-actions">
       <el-input v-model="currentEssayTitle" placeholder="请输入标题" class="title-input"
-        @update:model-value="handleOtherChange" style="width: 100%; height: 50px;" />
+        @update:model-value="handleOtherChange" />
       <div class="action-buttons">
-        <el-button type="warning" size="default" @click="handleEndEdit" style="margin-left: 20px; height: 40px;">
-          <el-icon>
-            <Check />
-          </el-icon>
+        <el-button type="warning" @click="handleEndEdit" class="end-edit-btn">
+          <el-icon><Check /></el-icon>
           结束编辑
         </el-button>
       </div>
@@ -350,14 +354,28 @@ const currentEssayClassId = computed({
         </span>
       </template>
     </el-dialog>
+    <scroll-to-buttons mode="sticky" />
   </div>
 </template>
 
 <style scoped>
 .essay-edit {
-  padding: 20px;
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
+  max-width: 70rem;
+  margin: var(--space-10) auto 0;
+  width: 100%;
+  position: relative;
+}
+
+.title-input :deep(.el-input__wrapper) {
+  height: 50px;
+}
+
+.end-edit-btn {
+  margin-left: var(--space-5);
+  height: 40px;
 }
 
 .essay-container {
@@ -367,34 +385,47 @@ const currentEssayClassId = computed({
 }
 
 .title-input {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
+}
+
+.title-input :deep(.el-input__inner) {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
 }
 
 .type-input {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .tags-management {
-  margin-top: 1rem;
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
 .tag-actions {
-  margin-top: 0.5rem;
+  margin-top: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
 }
 
 .new-tag-input {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-3);
 }
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 1rem;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
 }
 
 .action-buttons {
@@ -402,7 +433,34 @@ const currentEssayClassId = computed({
   display: flex;
   align-items: center;
   height: 50px;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
 }
 
+.essay-tag {
+  margin-right: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .essay-edit {
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    justify-content: flex-end;
+    margin-bottom: 0;
+  }
+
+  .end-edit-btn {
+    margin-left: 0;
+  }
+}
 </style>

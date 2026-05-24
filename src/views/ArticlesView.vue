@@ -551,76 +551,90 @@ onMounted(async () => {
 <style scoped>
 .add-essay-button {
   position: fixed;
-  bottom: 4.1rem;
-  right: 2rem;
+  bottom: var(--space-16);
+  right: var(--space-6);
   z-index: 100;
+}
+
+.add-essay-button :deep(.el-button) {
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.add-essay-button :deep(.el-button:hover) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 .articles-container {
   display: flex;
-  gap: 2rem;
-  padding: 2rem;
+  gap: var(--space-6);
+  padding: var(--space-6);
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: var(--color-bg-page);
 }
 
 .collections-list {
   width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-right: 1rem;
-  border-right: 1px solid #e6e9ed;
+  gap: var(--space-3);
+  padding-right: var(--space-4);
+  border-right: 1px solid var(--color-border);
 }
 
 .collection-card {
-  padding: 1.2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: var(--space-4);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) var(--ease-out);
   text-align: center;
-  font-size: 1rem;
-  color: #606266;
-  border: 2px solid transparent;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+  font-weight: 500;
 }
 
 .collection-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f8f9fa;
+  box-shadow: var(--shadow-md);
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent-light);
 }
 
 .collection-card.active {
-  border-color: #409eff;
-  color: #409eff;
-  background-color: #ecf5ff;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
 }
 
 .essays-container {
   flex: 1;
   display: flex;
-  flex-direction: column; /* 改为纵向布局 */
+  flex-direction: column;
   align-items: center;
-  padding: 2rem;
+  padding: var(--space-6);
 }
 
 .collection-description {
   width: 100%;
   max-width: 1200px;
-  padding: 0 1rem 2rem;
-  color: #606266;
-  font-size: 1.1rem;
+  padding: 0 var(--space-4) var(--space-6);
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
 }
 
 .deleted-toggle {
   position: fixed;
-  bottom: 0.5rem;
-  right: 2rem;
+  bottom: var(--space-2);
+  right: var(--space-6);
   z-index: 100;
-  line-height: 1.6;
+  line-height: var(--leading-normal);
   text-align: center;
-  font-weight: 300;
+  font-weight: 400;
   opacity: 0.9;
 }
 
@@ -629,35 +643,81 @@ onMounted(async () => {
   max-width: 1200px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: var(--space-5);
   justify-items: center;
-  padding: 1rem 0;
-  max-height: calc(100vh - 12rem); /* 调整最大高度，为描述留出空间 */
+  padding: var(--space-4) 0;
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  .articles-container {
+    flex-direction: column;
+    padding: var(--space-4);
+  }
+
+  .collections-list {
+    width: 100%;
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--space-4);
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--space-2);
+  }
+
+  .collection-card {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .essays-list {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .deleted-toggle {
+    position: static;
+    margin-top: var(--space-4);
+    text-align: right;
+  }
+
+  .admin-actions {
+    bottom: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .add-essay-button {
+    position: static;
+    margin-top: var(--space-4);
+    text-align: right;
+  }
+}
+
 .essay-card {
-  /* 修改卡片样式以适应状态标签 */
   position: relative;
   width: 100%;
   max-width: 320px;
   height: 100px;
-  padding: 1.5rem;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: var(--space-5);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  border: 1px solid var(--color-border);
 }
 
 .essay-title {
   text-align: center;
-  font-size: 1.1rem;
-  color: #303133;
-  /* 防止标题过长 */
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -667,19 +727,25 @@ onMounted(async () => {
 
 .status-tag {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  bottom: var(--space-2);
+  left: var(--space-2);
 }
 
 .delete-essay-btn {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: var(--space-1);
+  right: var(--space-1);
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.essay-card:hover .delete-essay-btn {
+  opacity: 1;
 }
 
 .essay-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .empty-state {
@@ -695,49 +761,50 @@ onMounted(async () => {
 .empty-message {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: center;
 }
 
 .primary-text {
-  font-size: 1.8rem;
-  color: #606266;
-  font-weight: 300;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-text-secondary);
+  font-weight: 400;
   margin: 0;
   opacity: 0.8;
 }
 
 .secondary-text {
-  font-size: 1.2rem;
-  color: #909399;
+  font-size: var(--text-base);
+  color: var(--color-text-tertiary);
   margin: 0;
   opacity: 0.7;
 }
 
 .add-collection-button {
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: var(--space-4);
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .admin-actions {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: var(--space-6);
+  right: var(--space-6);
   z-index: 100;
 }
 
 .admin-actions .el-button-group {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--space-3);
 }
 </style>

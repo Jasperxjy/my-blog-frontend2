@@ -222,7 +222,7 @@ onMounted(() => {
 .tips-container {
   width: 100%;
   max-width: 1200px;
-  padding: 2rem;
+  padding: var(--space-6);
   margin: 0 auto;
 }
 
@@ -230,111 +230,134 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
 }
 
 h2 {
-  font-size: 2.5rem;
-  color: #2c3e50;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-text-primary);
+  font-weight: 700;
 }
 
 .add-tip-btn {
-  padding: 0.5rem 1rem;
-  background-color: #3498db;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-accent);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .add-tip-btn:hover {
-  background-color: #2980b9;
+  background-color: var(--color-accent-hover);
 }
 
 .add-tip-form {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
 }
 
 .add-tip-form textarea {
   width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   resize: vertical;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.add-tip-form textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
 }
 
 .add-tip-form button {
-  padding: 0.5rem 1rem;
-  background-color: #2ecc71;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-success);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .add-tip-form button:hover {
-  background-color: #27ae60;
+  background-color: var(--color-success);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .tips-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2rem;
+  gap: var(--space-5);
 }
 
 .tip-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: var(--color-bg-surface);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
   cursor: pointer;
 }
 
 .tip-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .tip-content {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-primary);
 }
 
 .tip-card-disabled {
-  opacity: 0.7;
-  background-color: #f5f5f5;
+  opacity: 0.6;
+  background-color: var(--color-bg-page);
 }
 
 .tip-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: var(--space-4);
 }
 
 .tip-status {
-  font-size: 0.9rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background-color: #4caf50;
+  font-size: var(--text-xs);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-success);
   color: white;
+  font-weight: 500;
 }
 
 .status-disabled {
-  background-color: #f44336;
+  background-color: var(--color-error);
 }
 
 .tip-time {
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
 }
 
 /* 弹窗样式 */
@@ -344,101 +367,150 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-bg-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .dialog-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  background: var(--color-bg-surface);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border);
 }
 
 .dialog-content h3 {
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
-  font-size: 1.5rem;
+  margin-bottom: var(--space-5);
+  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  font-weight: 600;
 }
 
 .dialog-body {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
 }
 
 .edit-area {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-5);
 }
 
 .edit-area label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-primary);
   font-weight: 500;
+  font-size: var(--text-sm);
 }
 
 .edit-area textarea {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  line-height: 1.5;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   resize: vertical;
-  transition: border-color 0.3s;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
 }
 
 .edit-area textarea:focus {
-  border-color: #3498db;
+  border-color: var(--color-accent);
   outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
 }
 
 .tip-info {
-  color: #666;
-  font-size: 0.9rem;
-  margin: 0.5rem 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  margin: var(--space-2) 0;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: var(--space-3);
+}
+
+.delete-btn,
+.cancel-btn,
+.save-btn {
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-base);
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background-color: var(--color-error);
   color: white;
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  background-color: var(--color-error);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .save-btn {
-  background-color: #3498db;
+  background-color: var(--color-accent);
   color: white;
-  padding: 0.5rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s;
 }
 
 .save-btn:hover {
-  background-color: #2980b9;
+  background-color: var(--color-accent-hover);
+  transform: translateY(-1px);
 }
 
 .cancel-btn {
-  background-color: #6c757d;
+  background-color: var(--color-text-tertiary);
   color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #5a6268;
+  background-color: var(--color-text-secondary);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .tips-container {
+    padding: var(--space-4);
+  }
+
+  .tips-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+  }
+
+  .tips-list {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .tip-card {
+    padding: var(--space-4);
+  }
+
+  .dialog-content {
+    padding: var(--space-5);
+    width: 92%;
+  }
 }
 </style>

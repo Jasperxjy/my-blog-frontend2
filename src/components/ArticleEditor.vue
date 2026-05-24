@@ -104,6 +104,8 @@ import html from 'highlight.js/lib/languages/xml'
 import python from 'highlight.js/lib/languages/python'
 import java from 'highlight.js/lib/languages/java'
 import cpp from 'highlight.js/lib/languages/cpp'
+import json from 'highlight.js/lib/languages/json'
+import bash from 'highlight.js/lib/languages/bash'
 import { Annotation } from '@/extensions/annotation.ts'
 import type { Note } from '@/types/essay'
 import StarterKit from '@tiptap/starter-kit'
@@ -145,6 +147,10 @@ lowlight.register('python', python)
 lowlight.register('java', java)
 lowlight.register('cpp', cpp)
 lowlight.register('c++', cpp)
+lowlight.register('json', json)
+lowlight.register('bash', bash)
+lowlight.register('shell', bash)
+lowlight.register('sh', bash)
 
 const editor = useEditor({
   content: props.modelValue,
@@ -184,7 +190,7 @@ const editor = useEditor({
 
     }).extend({
       addNodeView() {
-        return ({ node, editor, HTMLAttributes }) => {
+        return ({ node, editor, getPos, HTMLAttributes }) => {
           const div = document.createElement('div')
           const pre = document.createElement('pre')
           const code = document.createElement('code')
@@ -199,13 +205,26 @@ const editor = useEditor({
             <option value="python">Python</option>
             <option value="java">Java</option>
             <option value="cpp">C++</option>
+            <option value="json">JSON</option>
+            <option value="bash">Shell / Bash</option>
           `
           select.value = node.attrs.language || 'plaintext'
+          pre.dataset.language = node.attrs.language || 'plaintext'
 
           select.onchange = (e) => {
-            editor.commands.updateAttributes('codeBlock', {
-              language: (e.target as HTMLSelectElement).value
-            })
+            e.stopPropagation()
+            const lang = (e.target as HTMLSelectElement).value
+            pre.dataset.language = lang
+            const pos = typeof getPos === 'function' ? getPos() : null
+            if (pos !== null) {
+              editor.commands.command(({ tr, dispatch }) => {
+                const nodeAtPos = editor.state.doc.nodeAt(pos)
+                if (!nodeAtPos || nodeAtPos.type.name !== 'codeBlock') return false
+                tr.setNodeMarkup(pos, undefined, { ...nodeAtPos.attrs, language: lang })
+                if (dispatch) dispatch(tr)
+                return true
+              })
+            }
           }
 
           select.style.position = 'absolute'
@@ -218,6 +237,15 @@ const editor = useEditor({
           return {
             dom: div,
             contentDOM: code,
+            update(updatedNode) {
+              if (updatedNode.type.name !== 'codeBlock') return false
+              const newLang = updatedNode.attrs.language || 'plaintext'
+              if (newLang !== pre.dataset.language) {
+                pre.dataset.language = newLang
+                select.value = newLang
+              }
+              return true
+            }
           }
         }
       }
@@ -263,14 +291,17 @@ const editor = useEditor({
         position: absolute;
         right: 5px;
         top: 5px;
-        background: red;
-        color: white;
+        background: #c94848;
+        color: #ffffff;
         border-radius: 50%;
         width: 20px;
         height: 20px;
         border: none;
         cursor: pointer;
         display: ${props.editable ? 'block' : 'none'};
+        font-size: 14px;
+        line-height: 20px;
+        text-align: center;
       `
           delBtn.onclick = handleDelete
 
@@ -431,13 +462,13 @@ defineExpose({
 
     td,
     th {
-      border: 1px solid #ddd;
+      border: 1px solid var(--color-border);
       padding: 8px 12px;
-      min-width: 100px;
+      min-width: 60px;
     }
 
     th {
-      background-color: #f5f5f5;
+      background-color: var(--color-bg-page);
       font-weight: 600;
     }
   }
@@ -450,132 +481,31 @@ defineExpose({
     max-width: 100%;
 
     &.ProseMirror-selectednode {
-      outline: 3px solid var(--purple);
+      outline: 3px solid var(--color-accent);
     }
   }
 
   /* 高亮插件样式 */
   mark {
-    background-color: #FAF594;
+    background-color: var(--color-warning-light-5);
     padding: 0.2em 0.4em;
-    border-radius: 0.25em;
+    border-radius: var(--radius-sm);
   }
 
-  /* 代码块插件样式 */
+  /* 代码块插件样式 — 核心结构由全局 code-theme.css 控制，
+     这里仅保留编辑器特有的覆盖 */
   pre {
-    counter-reset: line;
-    background: #1e1e1e;
-    border-radius: 8px;
-    color: #dcdcdc;
-    font-family: 'Fira Code', monospace;
-    margin: 1.5rem 0 ;
-    padding: 2rem 1rem 1rem;
-    /* 增加顶部内边距 */
-    position: relative;
+    margin: 1.5rem 0;
     overflow-x: auto;
-    box-shadow: 0 4px 6px rgba(15, 15, 15, 0.1);
-    line-height: 1.5;
+  }
 
-
-
-    &::before {
-      content: attr(data-language);
-      position: absolute;
-      top: 0;
-      right: 1rem;
-      color: #7f7f7f;
-      font-size: 0.8em;
-      text-transform: uppercase;
-    }
-
-
-
-    code {
-      display: block;
-      overflow-x: auto;
-      padding: 1em;
-      font-family: 'Fira Code', 'Consolas', monospace;
-      font-size: 14px;
-      line-height: 1.6;
-
-      .line {
-        display: block;
-        counter-increment: line;
-
-        &::before {
-          content: counter(line);
-        position: absolute;
-          left: -3.5em;
-          width: 3em;
-        text-align: right;
-        color: #666;
-        user-select: none;
-          padding-right: 0.5em;
-      }
-    }
-
-    /* 优化语法高亮 */
-      .hljs-attr,
-      .hljs-attribute {
-        color: #9cdcfe;
-      }
-
-      .hljs-function {
-        .hljs-title {
-          color: #dcdcaa;
-        }
-      }
-
-      .hljs-comment {
-        color: #6a9955;
-        font-style: italic;
-      }
-
-    .hljs-quote {
-
-      color: #57a64a;
-      font-style: italic;
-    }
-
-    .hljs-keyword {
-      color: #569cd6;
-        font-weight: bold;
-    }
-
-
-      .hljs-built_in {
-        color: #4ec9b0;
-      }
-
-    .hljs-type {
-      color: #4ec9b0;
-    }
-
-
-    .hljs-string {
-      color: #d69d85;
-    }
-
-    .hljs-number {
-      color: #b5cea8;
-    }
-
-    .hljs-title {
-
-        &,
-        &.class_ {
-      color: #dcdcaa;
-    }
-      }
-
-    .hljs-params {
-      color: #9cdcfe;
-    }
-
-    .hljs-variable,
-    .hljs-meta {
-      color: #9b9b9b;
-    }
+  pre code {
+    display: block;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    line-height: 1.6;
   }
 
     @media (max-width: 768px) {
@@ -598,12 +528,11 @@ defineExpose({
         }
       }
     }
-  }
 
   /* 水平线插件样式 */
   hr {
     border: none;
-    border-top: 2px solid #ddd;
+    border-top: 2px solid var(--color-border-strong);
     margin: 2rem 0;
   }
 
@@ -621,9 +550,11 @@ defineExpose({
 
   /* 引用插件样式 */
   blockquote {
-    border-left: 3px solid var(--gray-3);
+    border-left: 3px solid var(--color-accent);
     margin: 1.5rem 0;
     padding-left: 1rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
   }
 
   /* 标题插件样式 */
@@ -666,23 +597,25 @@ defineExpose({
 }
 
 .editor {
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .menu-bar {
-  padding: 0.5rem;
-  border-bottom: 1px solid #ccc;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-strong);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
 }
 
 .mention {
-  background-color: var(--purple-light);
-  border-radius: 0.4rem;
+  background-color: var(--color-accent-subtle);
+  border-radius: var(--radius-sm);
   box-decoration-break: clone;
-  color: var(--purple);
+  color: var(--color-accent);
   padding: 0.1rem 0.3rem;
 }
 
@@ -697,33 +630,34 @@ defineExpose({
 
 .menu-bar button {
   padding: 0.3rem 0.6rem;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.3s, border-color 0.3s;
-  /* 添加过渡效果 */
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+  color: var(--color-text-secondary);
 }
 
 .menu-bar button:hover {
-  background: #f5f5f5;
+  background: var(--color-bg-page);
+  border-color: var(--color-border-strong);
 }
 
 .menu-bar button.active {
-  background: #e6f4ff;
-  border-color: #1890ff;
-  color: #1890ff;
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .annotation-marker {
-  background-color: #fff3d8;
+  background-color: var(--color-warning-light-9);
   padding: 2px 4px;
-  border-radius: 3px;
-  border: 1px solid #ffd799;
-  transition: background-color 0.2s;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-warning-light-5);
+  transition: background-color var(--duration-fast);
 
   &:hover {
-    background-color: #ffe6b3;
+    background-color: var(--color-warning-light-7);
   }
 }
 
