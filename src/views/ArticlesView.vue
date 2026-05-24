@@ -303,7 +303,8 @@ const handleDeleteEssay = async (essay: EssayBrief) => {
     const result = await deleteEssay(essay.essayId)
     if (result.success) {
       ElMessage.success('删除成功')
-      await fetchEssays(selectedCollectionId.value)
+      // 直接更新本地状态，避免缓存延迟导致状态显示不一致
+      essay.status = ESSAY_STATUS.DELETED
     } else {
       ElMessage.error(result.errorMsg || '删除失败')
     }
