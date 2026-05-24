@@ -9,6 +9,12 @@ const playerStore = usePlayerStore()
 <template>
   <div class="app-container">
     <RouterView />
+
+    <footer class="site-footer">
+      <a href="https://beian.miit.gov.cn/" target="_blank">蜀ICP备2025125475号-1</a>
+      <router-link to="/about">网站使用指南</router-link>
+    </footer>
+
     <MusicPlayer
       v-model:visible="playerStore.isVisible"
       :current-music="playerStore.currentMusic"
@@ -37,6 +43,25 @@ html, body {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+.site-footer {
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: auto; /* 关键布局属性 */
+}
+
+.site-footer a {
+  color: #666;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: #3498db;
 }
 
 /* RouterView不需要特殊的flex样式，移除可能导致问题的样式 */

@@ -357,10 +357,12 @@ onMounted(() => {
         <p class="detail-desc">{{ selectedMusic.description }}</p>
       </div>
     </el-dialog>
+
   </div>
 </template>
 
 <style scoped>
+
 .music-container {
   max-width: 1200px;  /* 限制最大宽度 */
   margin: 0 auto;     /* 居中显示 */

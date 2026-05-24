@@ -4,9 +4,9 @@ import { useUserStore } from '@/stores/user'
 import type { Result } from '@/types/common'
 
 // 服务器基础URL
-export const BASE_URL = 'http://47.108.171.144:80'
+export const BASE_URL = 'https://www.jasper-xjy.fun'
 // 图片资源基础URL，与后端服务器相同
-export const IMAGE_BASE_URL = 'http://47.108.171.144:80'
+export const IMAGE_BASE_URL = 'https://www.jasper-xjy.fun'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({

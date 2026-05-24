@@ -428,6 +428,8 @@ onMounted(() => {
           <div class="image-name">{{ image.fileName }}</div>
         </div>
       </div>
+
+
     </div>
 
     <!-- 图片详情弹窗 -->
@@ -593,6 +595,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
 .albums-container {
   display: flex;
   height: calc(100vh - 60px);

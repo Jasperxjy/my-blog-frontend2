@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Pointer } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
@@ -246,6 +246,13 @@ const cancelReply = () => {
 
 onMounted(() => {
   loadComments()
+})
+
+// 监听 essayId 变化，切换文章时重新加载评论
+watch(() => props.essayId, (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    loadComments()
+  }
 })
 </script>
 

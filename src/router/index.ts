@@ -80,7 +80,16 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       requiresAdmin: true
     }
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('@/views/AboutView.vue'),
+    meta: {
+      requiresAuth: false
+    }
   }
+
 ]
 
 // 创建路由实例

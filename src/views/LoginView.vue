@@ -1,8 +1,8 @@
 <template>
   <div class="login-page">
     <div class="welcome-section">
-      <h1>欢迎来到个人博客系统</h1>
-      <p>分享生活，记录点滴</p>
+      <h1>欢迎来到渠成的个人学习网站</h1>
+      <p>分享生活，学习技术，记录点滴</p>
     </div>
 
     <div class="auth-container">
@@ -49,10 +49,10 @@
         </div>
         <div class="form-item">
           <select v-model="registerForm.role">
-            <option value="ADMIN">管理员</option>
+            <!-- <option value="ADMIN">管理员</option> -->
             <option value="FRIEND">好友</option>
-            <option value="CLOSE_FRIEND">亲人</option>
-            <option value="GUEST">游客</option>
+            <option value="CLOSE_FRIEND">密友/亲人</option>
+            <!-- <option value="GUEST">游客</option> -->
           </select>
         </div>
         <button type="submit">注册</button>
@@ -66,6 +66,8 @@
     <div v-if="loading" class="loading-overlay">
       加载中...
     </div>
+
+
   </div>
 </template>
 
@@ -449,4 +451,6 @@ button {
   margin-right: 8px;
   font-weight: 500;
 }
+
+
 </style>

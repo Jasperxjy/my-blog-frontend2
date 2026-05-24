@@ -9,6 +9,7 @@ import TipsList from '@/components/TipsList.vue'
     <main class="main-content">
       <TipsList />
     </main>
+     
   </div>
 </template>
 
@@ -32,4 +33,5 @@ import TipsList from '@/components/TipsList.vue'
   flex-direction: column;
   align-items: center;
 }
+
 </style>
