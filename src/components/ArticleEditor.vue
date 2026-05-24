@@ -61,7 +61,13 @@
         链接
       </button>
     </div>
-    <editor-content :editor="editor" class="editor-content" spellcheck="false"/>
+    <editor-content
+      :editor="editor"
+      class="editor-content"
+      spellcheck="false"
+      @drop="handleDrop"
+      @paste="handlePaste"
+    />
   </div>
 </template>
 
@@ -82,7 +88,6 @@ import TableHeader from '@tiptap/extension-table-header'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import OrderedList from '@tiptap/extension-ordered-list'
 import Link from '@tiptap/extension-link'
-import FileHandler from '@tiptap-pro/extension-file-handler'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import Heading from '@tiptap/extension-heading'
@@ -332,58 +337,7 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Strike,
     Underline,
-    FileHandler.configure({
-      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-      onDrop: async (currentEditor, files, pos) => {
-        for (const file of files) {
-          try {
-            const formData = new FormData()
-            formData.append('image', file)
-            // 上传图片到服务器
-            const result = await uploadImage(file, props.essayId)
-            if (!result.data) throw new Error('上传失败')
-            const data = result.data
-            // 插入图片链接
-            currentEditor.chain().insertContentAt(pos, {
-              type: 'image',
-              attrs: {
-                src: `${IMAGE_BASE_URL}${data.filePath}`,
-                serverId: data.imageId,
-                alt: file.name,
-                title: file.name
-              }
-            }).focus().run()
-          } catch (error) {
-            ElMessage.error('图片上传失败')
-          }
-        }
-      },
-      onPaste: async (currentEditor, files) => {
-        const pos = currentEditor.state.selection.$anchor.pos
-        for (const file of files) {
-          try {
-            const formData = new FormData()
-            formData.append('image', file)
-            // 上传图片到服务器
-            const result = await uploadImage(file, props.essayId)
-            if (!result.data) throw new Error('上传失败')
-            const data = result.data
-            // 插入图片链接
-            currentEditor.chain().insertContentAt(pos, {
-              type: 'image',
-              attrs: {
-                src: `${IMAGE_BASE_URL}${data.filePath}`,
-                serverId: data.imageId,
-                alt: file.name,
-                title: file.name
-              }
-            }).focus().run()
-          } catch (error) {
-            ElMessage.error('图片上传失败')
-          }
-        }
-      }
-    }),
+
   ]
 })
 
@@ -413,6 +367,65 @@ watch(() => props.modelValue, (newValue) => {
   }
 })
 
+
+// 处理图片拖拽上传
+const handleDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  const files = Array.from(event.dataTransfer?.files || []).filter((f) =>
+    ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(f.type)
+  )
+  if (!files.length || !editor.value || !props.essayId) return
+
+  const pos = editor.value.view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+  if (pos == null) return
+
+  for (const file of files) {
+    try {
+      const result = await uploadImage(file, props.essayId)
+      if (!result.data) throw new Error('上传失败')
+      const data = result.data
+      editor.value.chain().insertContentAt(pos, {
+        type: 'image',
+        attrs: {
+          src: `${IMAGE_BASE_URL}${data.filePath}`,
+          serverId: data.imageId,
+          alt: file.name,
+          title: file.name
+        }
+      }).focus().run()
+    } catch (error) {
+      ElMessage.error('图片上传失败')
+    }
+  }
+}
+
+// 处理图片粘贴上传
+const handlePaste = async (event: ClipboardEvent) => {
+  const files = Array.from(event.clipboardData?.files || []).filter((f) =>
+    ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(f.type)
+  )
+  if (!files.length || !editor.value || !props.essayId) return
+
+  const pos = editor.value.state.selection.$anchor.pos
+  for (const file of files) {
+    try {
+      const result = await uploadImage(file, props.essayId)
+      if (!result.data) throw new Error('上传失败')
+      const data = result.data
+      editor.value.chain().insertContentAt(pos, {
+        type: 'image',
+        attrs: {
+          src: `${IMAGE_BASE_URL}${data.filePath}`,
+          serverId: data.imageId,
+          alt: file.name,
+          title: file.name
+        }
+      }).focus().run()
+    } catch (error) {
+      ElMessage.error('图片上传失败')
+    }
+  }
+}
 
 defineExpose({
   currentCursorPos,
